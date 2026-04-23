@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2026.4.15</Version>
+    <Version>2026.4.23</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin.All</AssemblyName>
     <RootNamespace>Senparc.Weixin.All</RootNamespace>
@@ -78,6 +78,7 @@
 		[2026-01-25] v2026.1.25 优化 TenPayV3
 		[2026-03-20] v2026.3.23 MP v16.24.2 修复 GetStableAccessToken 方法中 force_refresh 参数硬编码问题 / Issue #3272
 		[2026-04-15] v2026.4.15 .NET 10 相关 preview 升级为正式版（含 AspNet MCP 依赖、TenPayV3 稳定版）
+		[2026-04-23] v2026.4.23 TenPayV3 v2.4.0 feat: 添加 CertType、JsApiAppType 枚举；GetJsApiUiPackage() 支持 WxOpen 和 NativeApp 两种 JsApi 应用类型
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>
