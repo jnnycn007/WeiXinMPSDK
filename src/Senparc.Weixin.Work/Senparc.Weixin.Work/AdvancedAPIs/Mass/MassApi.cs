@@ -365,30 +365,21 @@ namespace Senparc.Weixin.Work.AdvancedAPIs
                         articles = articles.Select(z =>
                         {
                             var workArticle = z as Senparc.Weixin.Work.Entities.WorkNewsArticle;
-                            if (workArticle != null)
+                            var article = new Dictionary<string, object>
                             {
-                                return new
-                                {
-                                    title = z.Title,
-                                    description = z.Description,
-                                    url = z.Url,
-                                    picurl = z.PicUrl,//图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图640*320，小图80*80
-                                    appid = workArticle.AppId,//小程序appid，必须是与当前应用关联的小程序
-                                    pagepath = workArticle.PagePath//点击消息卡片后的小程序页面
-                                };
-                            }
-                            else
+                                { "title", z.Title },
+                                { "description", z.Description },
+                                { "url", z.Url },
+                                { "picurl", z.PicUrl }
+                            };
+                            
+                            if (workArticle != null && !string.IsNullOrEmpty(workArticle.AppId))
                             {
-                                return new
-                                {
-                                    title = z.Title,
-                                    description = z.Description,
-                                    url = z.Url,
-                                    picurl = z.PicUrl,//图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图640*320，小图80*80
-                                    appid = (string)null,
-                                    pagepath = (string)null
-                                };
+                                article["appid"] = workArticle.AppId;
+                                article["pagepath"] = workArticle.PagePath;
                             }
+                            
+                            return article;
                         }).ToList()
                     },
                     enable_duplicate_check = enableDuplicateCheck,
@@ -943,30 +934,21 @@ namespace Senparc.Weixin.Work.AdvancedAPIs
                         articles = articles.Select(z =>
                         {
                             var workArticle = z as Senparc.Weixin.Work.Entities.WorkNewsArticle;
-                            if (workArticle != null)
+                            var article = new Dictionary<string, object>
                             {
-                                return new
-                                {
-                                    title = z.Title,
-                                    description = z.Description,
-                                    url = z.Url,
-                                    picurl = z.PicUrl,//图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图640*320，小图80*80
-                                    appid = workArticle.AppId,//小程序appid，必须是与当前应用关联的小程序
-                                    pagepath = workArticle.PagePath//点击消息卡片后的小程序页面
-                                };
-                            }
-                            else
+                                { "title", z.Title },
+                                { "description", z.Description },
+                                { "url", z.Url },
+                                { "picurl", z.PicUrl }
+                            };
+                            
+                            if (workArticle != null && !string.IsNullOrEmpty(workArticle.AppId))
                             {
-                                return new
-                                {
-                                    title = z.Title,
-                                    description = z.Description,
-                                    url = z.Url,
-                                    picurl = z.PicUrl,//图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图640*320，小图80*80
-                                    appid = (string)null,
-                                    pagepath = (string)null
-                                };
+                                article["appid"] = workArticle.AppId;
+                                article["pagepath"] = workArticle.PagePath;
                             }
+                            
+                            return article;
                         }).ToList()
                     },
                     enable_duplicate_check = enableDuplicateCheck,
