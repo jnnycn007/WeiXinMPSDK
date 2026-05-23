@@ -53,7 +53,7 @@ namespace Senparc.Weixin.Open.ComponentAPIs
         /// <summary>
         /// 任务的状态 0成功
         /// </summary>
-        public int status { get; set; }
+        public FastRegisterPersonalWeApp_Status status { get; set; }
     }
 }
 

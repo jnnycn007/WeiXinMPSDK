@@ -20,57 +20,39 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
 /*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
-  
-    文件名：Enums.cs
-    文件功能描述：应答的语种的枚举类
-    
-    
-    创建标识：Senparc - 20210804
-    
+
+    文件名：FastRegisterEnterpriseWeAppResult.cs
+    文件功能描述：快速注册企业小程序返回结果
+
+
+    创建标识： mc7246 - 20260328
+
 ----------------------------------------------------------------*/
 
+using Senparc.Weixin.Entities;
 using System;
 
-namespace Senparc.Weixin.TenPayV3
+namespace Senparc.Weixin.Open.ComponentAPIs
 {
     /// <summary>
-    /// 应答的语种
+    /// 快速注册企业小程序返回结果
     /// </summary>
-    public class AcceptLanguage
-    {
-        public const string EN = "en";
-        public const string ZH_CN = "zh-CN";
-        public const string ZH_HK = "zh-HK";
-        public const string ZH_TW = "zh-TW";
-    }
-
-    /// <summary>
-    /// API 请求方法
-    /// </summary>
-    public enum ApiRequestMethod
-    {
-        GET,
-        POST,
-        PUT,
-        PATCH,
-        DELETE
-    }
-
-    /// <summary>
-    /// 调起支付的应用类型
-    /// </summary>
-    public enum JsApiAppType
+    [Serializable]
+    public class FastRegisterEnterpriseWeAppResult : WxJsonResult
     {
         /// <summary>
-        /// 微信小程序
+        /// 任务ID
         /// </summary>
-        WxOpen,
+        public string taskid { get; set; }
 
         /// <summary>
-        /// 原生 App
+        /// 授权验证url
         /// </summary>
-        NativeApp
-    }
+        public string authorize_url { get; set; }
 
+        /// <summary>
+        /// 任务状态
+        /// </summary>
+        public FastRegisterEnterpriseWeApp_Status status { get; set; }
+    }
 }
-
