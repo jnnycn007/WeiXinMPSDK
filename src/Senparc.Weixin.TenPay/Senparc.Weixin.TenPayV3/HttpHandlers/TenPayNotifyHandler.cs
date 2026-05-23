@@ -38,6 +38,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：mojinxun - 20250618
     修改描述：v2.1.0 兼容微信平台证书和微信支付公钥 / PR #3144
 
+    修改标识：Senparc - 20251126
+    修改描述：v2.4.0 修复 TenPayNotifyHandler Body 读取 bug，启用 EnableBuffering() 允许重复读取请求体 / Issue #3220
+
 ----------------------------------------------------------------*/
 
 using Microsoft.AspNetCore.Http;
