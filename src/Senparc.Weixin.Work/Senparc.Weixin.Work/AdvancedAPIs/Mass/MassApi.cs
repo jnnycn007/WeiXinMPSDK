@@ -362,12 +362,24 @@ namespace Senparc.Weixin.Work.AdvancedAPIs
                     agentid = agentId,
                     news = new
                     {
-                        articles = articles.Select(z => new
+                        articles = articles.Select(z =>
                         {
-                            title = z.Title,
-                            description = z.Description,
-                            url = z.Url,
-                            picurl = z.PicUrl//图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图640*320，小图80*80
+                            var workArticle = z as Senparc.Weixin.Work.Entities.WorkNewsArticle;
+                            var article = new Dictionary<string, object>
+                            {
+                                { "title", z.Title },
+                                { "description", z.Description },
+                                { "url", z.Url },
+                                { "picurl", z.PicUrl }
+                            };
+                            
+                            if (workArticle != null && !string.IsNullOrEmpty(workArticle.AppId))
+                            {
+                                article["appid"] = workArticle.AppId;
+                                article["pagepath"] = workArticle.PagePath;
+                            }
+                            
+                            return article;
                         }).ToList()
                     },
                     enable_duplicate_check = enableDuplicateCheck,
@@ -919,12 +931,24 @@ namespace Senparc.Weixin.Work.AdvancedAPIs
                     agentid = agentId,
                     news = new
                     {
-                        articles = articles.Select(z => new
+                        articles = articles.Select(z =>
                         {
-                            title = z.Title,
-                            description = z.Description,
-                            url = z.Url,
-                            picurl = z.PicUrl//图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图640*320，小图80*80
+                            var workArticle = z as Senparc.Weixin.Work.Entities.WorkNewsArticle;
+                            var article = new Dictionary<string, object>
+                            {
+                                { "title", z.Title },
+                                { "description", z.Description },
+                                { "url", z.Url },
+                                { "picurl", z.PicUrl }
+                            };
+                            
+                            if (workArticle != null && !string.IsNullOrEmpty(workArticle.AppId))
+                            {
+                                article["appid"] = workArticle.AppId;
+                                article["pagepath"] = workArticle.PagePath;
+                            }
+                            
+                            return article;
                         }).ToList()
                     },
                     enable_duplicate_check = enableDuplicateCheck,

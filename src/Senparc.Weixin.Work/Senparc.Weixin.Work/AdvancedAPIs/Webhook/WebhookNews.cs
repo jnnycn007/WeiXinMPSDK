@@ -53,6 +53,14 @@ namespace Senparc.Weixin.Work.AdvancedAPIs.Webhook
         /// 图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150。
         /// </summary>
         public string picurl { get; set; }
+        /// <summary>
+        /// 小程序appid，必须是与当前应用关联的小程序，appid和pagepath必须同时填写，填写后会忽略url字段
+        /// </summary>
+        public string appid { get; set; }
+        /// <summary>
+        /// 点击消息卡片后的小程序页面，仅限本小程序内的页面。appid和pagepath必须同时填写，填写后会忽略url字段
+        /// </summary>
+        public string pagepath { get; set; }
     }
 
 }

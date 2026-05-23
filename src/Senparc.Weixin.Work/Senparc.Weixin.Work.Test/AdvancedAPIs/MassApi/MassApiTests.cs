@@ -43,6 +43,48 @@ namespace Senparc.Weixin.Work.Test.AdvancedAPIs.MassApi
             }
         }
 
+        [TestMethod]
+        public void SendNewsWithMiniProgramTest()
+        {
+            /* 说明：此方法用于测试发送带小程序跳转的图文消息 */
+
+            try
+            {
+                var accessToken =
+                    "fM5CruClicaXYpz9vai-nl2lB2V-S25Yed_BDmd8sl6P1vBvExBnfoYbOrYAMEawhZc5bhX1mu0nVJilrBxXyeAs-7y70gkwJIEXVrk4JvfFaDJP6GdWBDYq5l6tqfL8megghLqDHLXPsdokIJ6UmXrb8buPEUgdKPNWXNJKVeq32uqB54OaAnxNkQVK-MtbI_QgNT4grhUhuIbYak_7Gg";
+
+                var articles = new List<Article>
+                {
+                    new WorkNewsArticle
+                    {
+                        Title = "测试图文消息",
+                        Description = "点击跳转到小程序",
+                        PicUrl = "https://sdk.weixin.senparc.com/images/v2/ewm_01.png",
+                        AppId = "wx12b4f63276b14d4c",
+                        PagePath = "/index/index"
+                    }
+                };
+
+                var result = Work.AdvancedAPIs.MassApi.SendNews(accessToken, "agentId", articles);
+                Assert.Fail();
+            }
+            catch (Senparc.Weixin.Exceptions.UnRegisterAppIdException e)
+            {
+                Assert.Fail(); //出现反馈问题中的"AppId未注册"错误
+            }
+            catch (Senparc.Weixin.Exceptions.ErrorJsonResultException e)
+            {
+                //请求发生错误！错误代码：40014，说明：invalid access_token"
+                Assert.AreEqual(40014, (int)e.JsonResult.errcode);
+
+                //没有发生AppId未注册的错误
+            }
+            catch (Exception e)
+            {
+                Assert.Fail();//其他错误
+            }
+        }
+
 
         [TestMethod()]
         public void SendTemplateCardTest()
