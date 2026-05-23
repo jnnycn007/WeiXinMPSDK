@@ -94,6 +94,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：hesi815 - 20200318
     修改描述：v1.5.401 实现分账接口，添加方法：MultiProfitSharing()、ProfitSharingFinish()、ProfitSharingAddReceiver()、ProfitSharingRemoveReceiver()、ProfitSharingQuery()
 
+    修改标识：Senparc - 20260523
+    修改描述：补充更新日志，完善文件头修改记录
+
 ----------------------------------------------------------------*/
 
 /*
@@ -140,7 +143,18 @@ namespace Senparc.Weixin.TenPay.V3
             using (MemoryStream ms = new MemoryStream(dataBytes))
             {
                 //调用证书
-                X509Certificate2 cer = new X509Certificate2(cert, certPassword, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet);
+                // .NET 9.0 兼容性改进：使用更灵活的证书加载标志
+                X509KeyStorageFlags storageFlags;
+                #if NET9_0_OR_GREATER
+                storageFlags = X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet;
+                if (System.OperatingSystem.IsWindows())
+                {
+                    storageFlags |= X509KeyStorageFlags.MachineKeySet;
+                }
+                #else
+                storageFlags = X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet;
+                #endif
+                X509Certificate2 cer = new X509Certificate2(cert, certPassword, storageFlags);
 
                 string responseContent = RequestUtility.HttpPost(
                     CommonDI.CommonSP,
@@ -169,7 +183,18 @@ namespace Senparc.Weixin.TenPay.V3
             using (MemoryStream ms = new MemoryStream(dataBytes))
             {
                 //调用证书
-                X509Certificate2 cer = new X509Certificate2(cert, certPassword, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet);
+                // .NET 9.0 兼容性改进：使用更灵活的证书加载标志
+                X509KeyStorageFlags storageFlags;
+                #if NET9_0_OR_GREATER
+                storageFlags = X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet;
+                if (System.OperatingSystem.IsWindows())
+                {
+                    storageFlags |= X509KeyStorageFlags.MachineKeySet;
+                }
+                #else
+                storageFlags = X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet;
+                #endif
+                X509Certificate2 cer = new X509Certificate2(cert, certPassword, storageFlags);
 
                 string responseContent = await RequestUtility.HttpPostAsync(
                     CommonDI.CommonSP,

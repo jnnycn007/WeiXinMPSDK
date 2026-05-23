@@ -30,6 +30,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改描述：添加新规定提示：红包超过2000元必须提供scene_id参数：
     https://pay.weixin.qq.com/wiki/doc/api/tools/cash_coupon.php?chapter=13_4&index=3
 
+    修改标识：Senparc - 20260523
+    修改描述：补充更新日志，完善文件头修改记录
+
 ----------------------------------------------------------------*/
 
 using Senparc.Weixin.TenPay;
@@ -151,7 +154,7 @@ namespace Senparc.Weixin.TenPay.V3
             string password = mchId;
 
             //调用证书
-            X509Certificate2 cer = new X509Certificate2(cert, password, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet);
+            X509Certificate2 cer = LoadCertificate(cert, password);
 
             XmlDocument doc = new Senparc.CO2NET.ExtensionEntities.XmlDocument_XxeFixed();
             #region 发起post请求，载入到doc中

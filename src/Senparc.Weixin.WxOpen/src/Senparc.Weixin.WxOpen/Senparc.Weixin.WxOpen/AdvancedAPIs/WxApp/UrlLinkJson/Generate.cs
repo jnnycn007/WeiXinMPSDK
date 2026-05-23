@@ -1,4 +1,17 @@
-﻿using Senparc.Weixin.Entities;
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2026 Senparc
+
+    文件名：Generate.cs
+    文件功能描述：
+
+    创建标识：Senparc - 20220106
+
+    修改标识：Senparc - 20260523
+    修改描述：补充更新日志，完善文件头修改记录
+
+----------------------------------------------------------------*/
+
+using Senparc.Weixin.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +45,22 @@ namespace Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp.UrlLinkJson
     }
 
     /// <summary>
+    /// 安全提示配置
+    /// </summary>
+    public class Generate_SafetyNotice
+    {
+        /// <summary>
+        /// 是否显示安全提示。默认不显示
+        /// </summary>
+        public bool is_show_safety_notice { get; set; }
+        
+        /// <summary>
+        /// 安全提示页面的跳转链接。当 is_show_safety_notice 为 true 时必填
+        /// </summary>
+        public string safe_url { get; set; }
+    }
+
+    /// <summary>
     /// UrlLinkApi.Generate() 接口返回结果
     /// </summary>
     public class GenerateResultJson : WxJsonResult
@@ -40,5 +69,20 @@ namespace Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp.UrlLinkJson
         /// 生成的小程序 URL Link
         /// </summary>
         public string url_link { get; set; }
+        
+        /// <summary>
+        /// 警告图标URL（可选，根据安全配置返回）
+        /// </summary>
+        public string warn_icon { get; set; }
+        
+        /// <summary>
+        /// 入口跟踪URL（可选，用于统计分析）
+        /// </summary>
+        public string entrance_url { get; set; }
+        
+        /// <summary>
+        /// 入口图标URL（可选）
+        /// </summary>
+        public string entrance_icon { get; set; }
     }
 }
