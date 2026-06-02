@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2026.4.23</Version>
+    <Version>2026.6.2</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin.All</AssemblyName>
     <RootNamespace>Senparc.Weixin.All</RootNamespace>
@@ -80,6 +80,7 @@
 		[2026-04-15] v2026.4.15 .NET 10 相关 preview 升级为正式版（含 AspNet MCP 依赖、TenPayV3 稳定版）
 		[2026-04-23] v2026.4.23 TenPayV3 v2.4.0 feat: 添加 CertType、JsApiAppType 枚举；GetJsApiUiPackage() 支持 WxOpen 和 NativeApp 两种 JsApi 应用类型
 		[2026-05-23] v2026.5.23 Open v4.24.0 feat: 增加微信认证审核联系人电话字段 #3287 感谢 @mc7246
+		[2026-06-02] v2026.6.0 WxOpen feat: add: vpay signature 虚拟支付 ##3294 感谢 @mojinxun
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

@@ -46,9 +46,10 @@ namespace Senparc.Weixin.WxOpen.AdvancedAPIs.XPay
         /// </summary>
         public string remark { get; set; }
 
-        /// <summary>
-        /// 平台类型1-安卓 2-苹果
-        /// </summary>
-        public int device_type { get; set; }
+        ///// <summary>
+        ///// 平台类型1-安卓 2-苹果
+        ///// </summary>
+        //[Obsolete("新版已取消")]
+        //public int device_type { get; set; }
     }
 }

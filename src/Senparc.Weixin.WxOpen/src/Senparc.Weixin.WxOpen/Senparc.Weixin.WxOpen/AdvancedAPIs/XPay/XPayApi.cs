@@ -28,10 +28,14 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     创建标识：Yaofeng - 20231130
 ----------------------------------------------------------------*/
 
+using Newtonsoft.Json;
 using Senparc.CO2NET.Extensions;
 using Senparc.NeuChar;
 using Senparc.Weixin.CommonAPIs;
 using Senparc.Weixin.Entities;
+using System.Security.Cryptography;
+using System.Text;
+using System;
 using System.Threading.Tasks;
 
 namespace Senparc.Weixin.WxOpen.AdvancedAPIs.XPay
@@ -47,396 +51,607 @@ namespace Senparc.Weixin.WxOpen.AdvancedAPIs.XPay
         /// <summary>
         /// 查询用户代币余额
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig">支付签名</param>
+        /// <param name="signature">用户态签名</param>
         /// <param name="openid">用户的openid</param>
         /// <param name="env">0-正式环境 1-沙箱环境</param>
         /// <param name="user_ip">用户ip，例如:1.1.1.1</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryUserBalanceJsonResult QueryUserBalance(string accessToken, string pay_sig, QueryUserBalanceRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryUserBalanceJsonResult QueryUserBalance(string accessTokenOrAppId, string pay_sig, string signature, QueryUserBalanceRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_user_balance?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryUserBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_user_balance?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
+                return CommonJsonSend.Send<QueryUserBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 扣减代币（一般用于代币支付）
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
-        /// <param name="signature">签名</param>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig">支付签名</param>
+        /// <param name="signature">用户态签名</param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static CurrencyPayJsonResult CurrencyPay(string accessToken, string pay_sig, string signature, CurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
+        public static CurrencyPayJsonResult CurrencyPay(string accessTokenOrAppId, string pay_sig, string signature, CurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/currency_pay?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
-            return CommonJsonSend.Send<CurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/currency_pay?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
+                return CommonJsonSend.Send<CurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询创建的订单（现金单，非代币单）
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryOrderJsonResult QueryOrder(string accessToken, string pay_sig, QueryOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryOrderJsonResult QueryOrder(string accessTokenOrAppId, string pay_sig, QueryOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<QueryOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 代币支付退款(currency_pay接口的逆操作)
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig">支付签名</param>
+        /// <param name="signature">用户态签名</param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static CancelCurrencyPayJsonResult CancelCurrencyPay(string accessToken, string pay_sig, CancelCurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
+        public static CancelCurrencyPayJsonResult CancelCurrencyPay(string accessTokenOrAppId, string pay_sig, string signature, CancelCurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/cancel_currency_pay?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<CancelCurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/cancel_currency_pay?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
+                return CommonJsonSend.Send<CancelCurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 通知已经发货完成（只能通知现金单）,正常通过xpay_goods_deliver_notify消息推送返回成功就不需要调用这个api接口。这个接口用于异常情况推送不成功时手动将单改成已发货状态
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static WxJsonResult NotifyProvideGoods(string accessToken, string pay_sig, NotifyProvideGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static WxJsonResult NotifyProvideGoods(string accessTokenOrAppId, string pay_sig, NotifyProvideGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/notify_provide_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/notify_provide_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 代币赠送
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static PresentCurrencyJsonResult PresentCurrency(string accessTokenOrAppId, PresentCurrencyRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/present_currency?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<PresentCurrencyJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 用于下载小程序账单，第一次调用触发生成下载url，可以间隔轮训来获取最终生成的下载url
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="begin_ds">起始时间（如20230801）</param>
         /// <param name="end_ds">截止时间（如20230810）</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static DownloadBillJsonResult DownloadBill(string accessToken, string pay_sig, long begin_ds, long end_ds, int timeOut = Config.TIME_OUT)
+        public static DownloadBillJsonResult DownloadBill(string accessTokenOrAppId, string pay_sig, long begin_ds, long end_ds, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/download_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            var data = new
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
             {
-                begin_ds,
-                end_ds
-            };
-            return CommonJsonSend.Send<DownloadBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+                var url = string.Format(Config.ApiMpHost + "/xpay/download_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                var data = new
+                {
+                    begin_ds,
+                    end_ds
+                };
+                return CommonJsonSend.Send<DownloadBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 对使用jsapi接口下的单进行退款，此接口只是启动退款任务成功，启动后需要调用query_order接口来查询退款单状态，等状态变成退款完成后即为最终成功
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static RefundOrderJsonResult RefundOrder(string accessToken, string pay_sig, RefundOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static RefundOrderJsonResult RefundOrder(string accessTokenOrAppId, string pay_sig, RefundOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/refund_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<RefundOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/refund_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<RefundOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 创建提现单
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static CreateWithdrawOrderJsonResult CreateWithdrawOrder(string accessToken, string pay_sig, CreateWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static CreateWithdrawOrderJsonResult CreateWithdrawOrder(string accessTokenOrAppId, string pay_sig, CreateWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/create_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<CreateWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/create_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<CreateWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询提现单
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryWithdrawOrderJsonResult QueryWithdrawOrder(string accessToken, string pay_sig, QueryWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryWithdrawOrderJsonResult QueryWithdrawOrder(string accessTokenOrAppId, string pay_sig, QueryWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<QueryWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 启动批量上传道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static WxJsonResult StartUploadGoods(string accessToken, string pay_sig, StartUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static WxJsonResult StartUploadGoods(string accessTokenOrAppId, string pay_sig, StartUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/start_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/start_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询批量上传道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryUploadGoodsJsonResult QueryUploadGoods(string accessToken, string pay_sig, QueryUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryUploadGoodsJsonResult QueryUploadGoods(string accessTokenOrAppId, string pay_sig, QueryUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryUploadGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<QueryUploadGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 启动批量发布道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static WxJsonResult StartPublishGoods(string accessToken, string pay_sig, StartPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static WxJsonResult StartPublishGoods(string accessTokenOrAppId, string pay_sig, StartPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/start_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/start_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询批量发布道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryPublishGoodsJsonResult QueryPublishGoods(string accessToken, string pay_sig, QueryPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryPublishGoodsJsonResult QueryPublishGoods(string accessTokenOrAppId, string pay_sig, QueryPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryPublishGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<QueryPublishGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询商家账户里的可提现余额
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="env">0-正式环境 1-沙箱环境（仅作为签名校验，查询的结果都是正式环境的）</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryBizBalanceJsonResult QueryBizBalance(string accessToken, string pay_sig, int env, int timeOut = Config.TIME_OUT)
+        public static QueryBizBalanceJsonResult QueryBizBalance(string accessTokenOrAppId, string pay_sig, int env, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            var data = new
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
             {
-                env
-            };
-            return CommonJsonSend.Send<QueryBizBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                var data = new
+                {
+                    env
+                };
+                return CommonJsonSend.Send<QueryBizBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金充值账户
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="env">0-正式环境 1-沙箱环境（仅作为签名校验，查询的结果都是正式环境的）</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryTransferAccountJsonResult QueryTransferAccount(string accessToken, string pay_sig, int env, int timeOut = Config.TIME_OUT)
+        public static QueryTransferAccountJsonResult QueryTransferAccount(string accessTokenOrAppId, int env, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_transfer_account?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            var data = new
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
             {
-                env
-            };
-            return CommonJsonSend.Send<QueryTransferAccountJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_transfer_account?access_token={0}", accessToken.AsUrlData());
+                var data = new
+                {
+                    env
+                };
+                return CommonJsonSend.Send<QueryTransferAccountJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金发放记录
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryAdverFundsJsonResult QueryAdverFunds(string accessToken, string pay_sig, QueryAdverFundsRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryAdverFundsJsonResult QueryAdverFunds(string accessTokenOrAppId, QueryAdverFundsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_adver_funds?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryAdverFundsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_adver_funds?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<QueryAdverFundsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 充值广告金
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static CreateFundsBillJsonResult CreateFundsBill(string accessToken, string pay_sig, CreateFundsBillRequestData data, int timeOut = Config.TIME_OUT)
+        public static CreateFundsBillJsonResult CreateFundsBill(string accessTokenOrAppId, CreateFundsBillRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<CreateFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<CreateFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 绑定广告金充值账户
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static WxJsonResult BindTransferAccout(string accessToken, string pay_sig, BindTransferAccoutRequestData data, int timeOut = Config.TIME_OUT)
+        public static WxJsonResult BindTransferAccout(string accessTokenOrAppId, BindTransferAccoutRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金充值记录
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryFundsBillJsonResult QueryFundsBill(string accessToken, string pay_sig, QueryFundsBillRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryFundsBillJsonResult QueryFundsBill(string accessTokenOrAppId, QueryFundsBillRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_funds_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_funds_bill?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<QueryFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金回收记录
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static QueryRecoverBillJsonResult QueryRecoverBill(string accessToken, string pay_sig, QueryRecoverBillRequestData data, int timeOut = Config.TIME_OUT)
+        public static QueryRecoverBillJsonResult QueryRecoverBill(string accessTokenOrAppId, QueryRecoverBillRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_recover_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<QueryRecoverBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_recover_bill?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<QueryRecoverBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取投诉列表
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static GetComplaintListJsonResult GetComplaintList(string accessToken, string pay_sig, GetComplaintListRequestData data, int timeOut = Config.TIME_OUT)
+        public static GetComplaintListJsonResult GetComplaintList(string accessTokenOrAppId, string pay_sig, GetComplaintListRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_list?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<GetComplaintListJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_list?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<GetComplaintListJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取投诉详情
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static GetComplaintDetailJsonResult GetComplaintDetail(string accessToken, string pay_sig, GetComplaintDetailRequestData data, int timeOut = Config.TIME_OUT)
+        public static GetComplaintDetailJsonResult GetComplaintDetail(string accessTokenOrAppId, string pay_sig, GetComplaintDetailRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_detail?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<GetComplaintDetailJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_detail?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<GetComplaintDetailJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取协商历史
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static GetNegotiationHistoryJsonResult GetNegotiationHistory(string accessToken, string pay_sig, GetNegotiationHistoryRequestData data, int timeOut = Config.TIME_OUT)
+        public static GetNegotiationHistoryJsonResult GetNegotiationHistory(string accessTokenOrAppId, string pay_sig, GetNegotiationHistoryRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_negotiation_history?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<GetNegotiationHistoryJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_negotiation_history?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<GetNegotiationHistoryJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 回复用户
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static WxJsonResult ResponseComplaint(string accessToken, string pay_sig, ResponseComplaintRequestData data, int timeOut = Config.TIME_OUT)
+        public static WxJsonResult ResponseComplaint(string accessTokenOrAppId, string pay_sig, ResponseComplaintRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/response_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/response_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 完成投诉处理
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static WxJsonResult CompleteComplaint(string accessToken, string pay_sig, CompleteComplaintRequestData data, int timeOut = Config.TIME_OUT)
+        public static WxJsonResult CompleteComplaint(string accessTokenOrAppId, string pay_sig, CompleteComplaintRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/complete_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/complete_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 上传媒体文件（如图片，凭证等）
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static UploadVpFileJsonResult UploadVpFile(string accessToken, string pay_sig, UploadVpFileRequestData data, int timeOut = Config.TIME_OUT)
+        public static UploadVpFileJsonResult UploadVpFile(string accessTokenOrAppId, string pay_sig, UploadVpFileRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/upload_vp_file?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<UploadVpFileJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/upload_vp_file?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<UploadVpFileJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取微信支付反馈投诉图片的签名头部
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static GetUploadFileSignJsonResult GetUploadFileSign(string accessToken, string pay_sig, GetUploadFileSignRequestData data, int timeOut = Config.TIME_OUT)
+        public static GetUploadFileSignJsonResult GetUploadFileSign(string accessTokenOrAppId, string pay_sig, GetUploadFileSignRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_upload_file_sign?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return CommonJsonSend.Send<GetUploadFileSignJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_upload_file_sign?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<GetUploadFileSignJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 下载广告金对应的商户订单信息
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static DownloadAdverfundsOrderJsonResult DownloadAdverfundsOrder(string accessTokenOrAppId, DownloadAdverfundsOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/download_adverfunds_order?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<DownloadAdverfundsOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 查询签约关系
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static QuerySubscribeContractJsonResult QuerySubscribeContract(string accessTokenOrAppId, QuerySubscribeContractRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_subscribe_contract?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<QuerySubscribeContractJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 预通知扣款
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static SendSubscribePrePaymentJsonResult SendSubscribePrePayment(string accessTokenOrAppId, SendSubscribePrePaymentRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/send_subscribe_pre_payment?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<SendSubscribePrePaymentJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 发起订阅扣款
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static SubmitSubscribePayOrderJsonResult SubmitSubscribePayOrder(string accessTokenOrAppId, SubmitSubscribePayOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/submit_subscribe_pay_order?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<SubmitSubscribePayOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 商家解约
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static CancelSubscribeContractJsonResult CancelSubscribeContract(string accessTokenOrAppId, CancelSubscribeContractRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/cancel_subscribe_contract?access_token={0}", accessToken.AsUrlData());
+                return CommonJsonSend.Send<CancelSubscribeContractJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 下载支付订单
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static StartDownloadOrderJsonResult StartDownloadOrder(string accessTokenOrAppId, string pay_sig, StartDownloadOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/start_download_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<StartDownloadOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 查询下载订单任务
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static QueryDownloadOrderJsonResult QueryDownloadOrder(string accessTokenOrAppId, string pay_sig, QueryDownloadOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return WxOpenApiHandlerWapper.TryCommonApi(accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_download_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return CommonJsonSend.Send<QueryDownloadOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
         #endregion
 
@@ -444,396 +659,675 @@ namespace Senparc.Weixin.WxOpen.AdvancedAPIs.XPay
         /// <summary>
         /// 查询用户代币余额
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig">支付签名</param>
+        /// <param name="signature">用户态签名</param>
         /// <param name="openid">用户的openid</param>
         /// <param name="env">0-正式环境 1-沙箱环境</param>
         /// <param name="user_ip">用户ip，例如:1.1.1.1</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryUserBalanceJsonResult> QueryUserBalanceAsync(string accessToken, string pay_sig, QueryUserBalanceRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryUserBalanceJsonResult> QueryUserBalanceAsync(string accessTokenOrAppId, string pay_sig, string signature, QueryUserBalanceRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_user_balance?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryUserBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_user_balance?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryUserBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 扣减代币（一般用于代币支付）
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
-        /// <param name="signature">签名</param>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig">支付签名</param>
+        /// <param name="signature">用户态签名</param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<CurrencyPayJsonResult> CurrencyPayAsync(string accessToken, string pay_sig, string signature, CurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<CurrencyPayJsonResult> CurrencyPayAsync(string accessTokenOrAppId, string pay_sig, string signature, CurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/currency_pay?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
-            return await CommonJsonSend.SendAsync<CurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/currency_pay?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
+                return await CommonJsonSend.SendAsync<CurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询创建的订单（现金单，非代币单）
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryOrderJsonResult> QueryOrderAsync(string accessToken, string pay_sig, QueryOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryOrderJsonResult> QueryOrderAsync(string accessTokenOrAppId, string pay_sig, QueryOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 代币支付退款(currency_pay接口的逆操作)
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig">支付签名</param>
+        /// <param name="signature">用户态签名</param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<CancelCurrencyPayJsonResult> CancelCurrencyPayAsync(string accessToken, string pay_sig, CancelCurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<CancelCurrencyPayJsonResult> CancelCurrencyPayAsync(string accessTokenOrAppId, string pay_sig, string signature, CancelCurrencyPayRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/cancel_currency_pay?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<CancelCurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/cancel_currency_pay?access_token={0}&pay_sig={1}&signature={2}", accessToken.AsUrlData(), pay_sig.AsUrlData(), signature.AsUrlData());
+                return await CommonJsonSend.SendAsync<CancelCurrencyPayJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 通知已经发货完成（只能通知现金单）,正常通过xpay_goods_deliver_notify消息推送返回成功就不需要调用这个api接口。这个接口用于异常情况推送不成功时手动将单改成已发货状态
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<WxJsonResult> NotifyProvideGoodsAsync(string accessToken, string pay_sig, NotifyProvideGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<WxJsonResult> NotifyProvideGoodsAsync(string accessTokenOrAppId, string pay_sig, NotifyProvideGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/notify_provide_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/notify_provide_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 代币赠送
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<PresentCurrencyJsonResult> PresentCurrencyAsync(string accessTokenOrAppId, PresentCurrencyRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/present_currency?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<PresentCurrencyJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 用于下载小程序账单，第一次调用触发生成下载url，可以间隔轮训来获取最终生成的下载url
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="begin_ds">起始时间（如20230801）</param>
         /// <param name="end_ds">截止时间（如20230810）</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<DownloadBillJsonResult> DownloadBillAsync(string accessToken, string pay_sig, long begin_ds, long end_ds, int timeOut = Config.TIME_OUT)
+        public static async Task<DownloadBillJsonResult> DownloadBillAsync(string accessTokenOrAppId, string pay_sig, long begin_ds, long end_ds, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/download_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            var data = new
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
             {
-                begin_ds,
-                end_ds
-            };
-            return await CommonJsonSend.SendAsync<DownloadBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+                var url = string.Format(Config.ApiMpHost + "/xpay/download_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                var data = new
+                {
+                    begin_ds,
+                    end_ds
+                };
+                return await CommonJsonSend.SendAsync<DownloadBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 对使用jsapi接口下的单进行退款，此接口只是启动退款任务成功，启动后需要调用query_order接口来查询退款单状态，等状态变成退款完成后即为最终成功
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<RefundOrderJsonResult> RefundOrderAsync(string accessToken, string pay_sig, RefundOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<RefundOrderJsonResult> RefundOrderAsync(string accessTokenOrAppId, string pay_sig, RefundOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/refund_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<RefundOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/refund_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<RefundOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 创建提现单
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<CreateWithdrawOrderJsonResult> CreateWithdrawOrderAsync(string accessToken, string pay_sig, CreateWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<CreateWithdrawOrderJsonResult> CreateWithdrawOrderAsync(string accessTokenOrAppId, string pay_sig, CreateWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/create_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<CreateWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/create_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<CreateWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询提现单
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryWithdrawOrderJsonResult> QueryWithdrawOrderAsync(string accessToken, string pay_sig, QueryWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryWithdrawOrderJsonResult> QueryWithdrawOrderAsync(string accessTokenOrAppId, string pay_sig, QueryWithdrawOrderRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_withdraw_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryWithdrawOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 启动批量上传道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<WxJsonResult> StartUploadGoodsAsync(string accessToken, string pay_sig, StartUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<WxJsonResult> StartUploadGoodsAsync(string accessTokenOrAppId, string pay_sig, StartUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/start_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/start_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询批量上传道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryUploadGoodsJsonResult> QueryUploadGoodsAsync(string accessToken, string pay_sig, QueryUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryUploadGoodsJsonResult> QueryUploadGoodsAsync(string accessTokenOrAppId, string pay_sig, QueryUploadGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryUploadGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_upload_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryUploadGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 启动批量发布道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<WxJsonResult> StartPublishGoodsAsync(string accessToken, string pay_sig, StartPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<WxJsonResult> StartPublishGoodsAsync(string accessTokenOrAppId, string pay_sig, StartPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/start_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/start_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询批量发布道具任务
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryPublishGoodsJsonResult> QueryPublishGoodsAsync(string accessToken, string pay_sig, QueryPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryPublishGoodsJsonResult> QueryPublishGoodsAsync(string accessTokenOrAppId, string pay_sig, QueryPublishGoodsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryPublishGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryPublishGoodsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询商家账户里的可提现余额
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="env">0-正式环境 1-沙箱环境（仅作为签名校验，查询的结果都是正式环境的）</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryBizBalanceJsonResult> QueryBizBalanceAsync(string accessToken, string pay_sig, int env, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryBizBalanceJsonResult> QueryBizBalanceAsync(string accessTokenOrAppId, string pay_sig, int env, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            var data = new
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
             {
-                env
-            };
-            return await CommonJsonSend.SendAsync<QueryBizBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_publish_goods?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                var data = new
+                {
+                    env
+                };
+                return await CommonJsonSend.SendAsync<QueryBizBalanceJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金充值账户
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="env">0-正式环境 1-沙箱环境（仅作为签名校验，查询的结果都是正式环境的）</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryTransferAccountJsonResult> QueryTransferAccountAsync(string accessToken, string pay_sig, int env, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryTransferAccountJsonResult> QueryTransferAccountAsync(string accessTokenOrAppId, int env, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_transfer_account?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            var data = new
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
             {
-                env
-            };
-            return await CommonJsonSend.SendAsync<QueryTransferAccountJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_transfer_account?access_token={0}", accessToken.AsUrlData());
+                var data = new
+                {
+                    env
+                };
+                return await CommonJsonSend.SendAsync<QueryTransferAccountJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金发放记录
         /// </summary>
-        /// <param name="accessToken"></param>
-        /// <param name="pay_sig"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryAdverFundsJsonResult> QueryAdverFundsAsync(string accessToken, string pay_sig, QueryAdverFundsRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryAdverFundsJsonResult> QueryAdverFundsAsync(string accessTokenOrAppId, QueryAdverFundsRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_adver_funds?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryAdverFundsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_adver_funds?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryAdverFundsJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 充值广告金
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<CreateFundsBillJsonResult> CreateFundsBillAsync(string accessToken, string pay_sig, CreateFundsBillRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<CreateFundsBillJsonResult> CreateFundsBillAsync(string accessTokenOrAppId, CreateFundsBillRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<CreateFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<CreateFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 绑定广告金充值账户
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<WxJsonResult> BindTransferAccoutAsync(string accessToken, string pay_sig, BindTransferAccoutRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<WxJsonResult> BindTransferAccoutAsync(string accessTokenOrAppId, BindTransferAccoutRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/create_funds_bill?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金充值记录
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryFundsBillJsonResult> QueryFundsBillAsync(string accessToken, string pay_sig, QueryFundsBillRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryFundsBillJsonResult> QueryFundsBillAsync(string accessTokenOrAppId, QueryFundsBillRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_funds_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_funds_bill?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryFundsBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 查询广告金回收记录
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<QueryRecoverBillJsonResult> QueryRecoverBillAsync(string accessToken, string pay_sig, QueryRecoverBillRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<QueryRecoverBillJsonResult> QueryRecoverBillAsync(string accessTokenOrAppId, QueryRecoverBillRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/query_recover_bill?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<QueryRecoverBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_recover_bill?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryRecoverBillJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取投诉列表
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<GetComplaintListJsonResult> GetComplaintListAsync(string accessToken, string pay_sig, GetComplaintListRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<GetComplaintListJsonResult> GetComplaintListAsync(string accessTokenOrAppId, string pay_sig, GetComplaintListRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_list?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<GetComplaintListJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_list?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<GetComplaintListJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取投诉详情
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<GetComplaintDetailJsonResult> GetComplaintDetailAsync(string accessToken, string pay_sig, GetComplaintDetailRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<GetComplaintDetailJsonResult> GetComplaintDetailAsync(string accessTokenOrAppId, string pay_sig, GetComplaintDetailRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_detail?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<GetComplaintDetailJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_complaint_detail?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<GetComplaintDetailJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取协商历史
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<GetNegotiationHistoryJsonResult> GetNegotiationHistoryAsync(string accessToken, string pay_sig, GetNegotiationHistoryRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<GetNegotiationHistoryJsonResult> GetNegotiationHistoryAsync(string accessTokenOrAppId, string pay_sig, GetNegotiationHistoryRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_negotiation_history?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<GetNegotiationHistoryJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_negotiation_history?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<GetNegotiationHistoryJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 回复用户
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<WxJsonResult> ResponseComplaintAsync(string accessToken, string pay_sig, ResponseComplaintRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<WxJsonResult> ResponseComplaintAsync(string accessTokenOrAppId, string pay_sig, ResponseComplaintRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/response_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/response_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 完成投诉处理
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<WxJsonResult> CompleteComplaintAsync(string accessToken, string pay_sig, CompleteComplaintRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<WxJsonResult> CompleteComplaintAsync(string accessTokenOrAppId, string pay_sig, CompleteComplaintRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/complete_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/complete_complaint?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<WxJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 上传媒体文件（如图片，凭证等）
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<UploadVpFileJsonResult> UploadVpFileAsync(string accessToken, string pay_sig, UploadVpFileRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<UploadVpFileJsonResult> UploadVpFileAsync(string accessTokenOrAppId, string pay_sig, UploadVpFileRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/upload_vp_file?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<UploadVpFileJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/upload_vp_file?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<UploadVpFileJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
         }
 
         /// <summary>
         /// 获取微信支付反馈投诉图片的签名头部
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="accessTokenOrAppId"></param>
         /// <param name="pay_sig"></param>
         /// <param name="data">请求参数</param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<GetUploadFileSignJsonResult> GetUploadFileSignAsync(string accessToken, string pay_sig, GetUploadFileSignRequestData data, int timeOut = Config.TIME_OUT)
+        public static async Task<GetUploadFileSignJsonResult> GetUploadFileSignAsync(string accessTokenOrAppId, string pay_sig, GetUploadFileSignRequestData data, int timeOut = Config.TIME_OUT)
         {
-            var url = string.Format(Config.ApiMpHost + "/xpay/get_upload_file_sign?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
-            return await CommonJsonSend.SendAsync<GetUploadFileSignJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/get_upload_file_sign?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<GetUploadFileSignJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 下载广告金对应的商户订单信息
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<DownloadAdverfundsOrderJsonResult> DownloadAdverfundsOrderAsync(string accessTokenOrAppId, DownloadAdverfundsOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/download_adverfunds_order?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<DownloadAdverfundsOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 查询签约关系
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<QuerySubscribeContractJsonResult> QuerySubscribeContractAsync(string accessTokenOrAppId, QuerySubscribeContractRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_subscribe_contract?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<QuerySubscribeContractJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 预通知扣款
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<SendSubscribePrePaymentJsonResult> SendSubscribePrePaymentAsync(string accessTokenOrAppId, SendSubscribePrePaymentRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/send_subscribe_pre_payment?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<SendSubscribePrePaymentJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 发起订阅扣款
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<SubmitSubscribePayOrderJsonResult> SubmitSubscribePayOrderAsync(string accessTokenOrAppId, SubmitSubscribePayOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/submit_subscribe_pay_order?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<SubmitSubscribePayOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 商家解约
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<CancelSubscribeContractJsonResult> CancelSubscribeContractAsync(string accessTokenOrAppId, CancelSubscribeContractRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/cancel_subscribe_contract?access_token={0}", accessToken.AsUrlData());
+                return await CommonJsonSend.SendAsync<CancelSubscribeContractJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 下载支付订单
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<StartDownloadOrderJsonResult> StartDownloadOrderAsync(string accessTokenOrAppId, string pay_sig, StartDownloadOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/start_download_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<StartDownloadOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+
+        /// <summary>
+        /// 查询下载订单任务
+        /// </summary>
+        /// <param name="accessTokenOrAppId"></param>
+        /// <param name="pay_sig"></param>
+        /// <param name="data">请求参数</param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
+        public static async Task<QueryDownloadOrderJsonResult> QueryDownloadOrderAsync(string accessTokenOrAppId, string pay_sig, QueryDownloadOrderRequestData data, int timeOut = Config.TIME_OUT)
+        {
+            return await WxOpenApiHandlerWapper.TryCommonApiAsync(async accessToken =>
+            {
+                var url = string.Format(Config.ApiMpHost + "/xpay/query_download_order?access_token={0}&pay_sig={1}", accessToken.AsUrlData(), pay_sig.AsUrlData());
+                return await CommonJsonSend.SendAsync<QueryDownloadOrderJsonResult>(null, url, data, CommonJsonSendType.POST, timeOut);
+            }, accessTokenOrAppId);
+        }
+        #endregion
+
+        #region 扩展方法
+        /// <summary>
+        /// 生成pay_sig
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="appKey"></param>
+        /// <param name="uri">例：/xpay/query_user_balance</param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException"></exception>
+        public static string GeneratePaySign<T>(string appKey, string uri, T data)
+        {
+            if (string.IsNullOrWhiteSpace(appKey))
+            {
+                throw new ArgumentNullException("appKey");
+            }
+            if (string.IsNullOrWhiteSpace(uri))
+            {
+                throw new ArgumentNullException("uri");
+            }
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+
+            var signData = JsonConvert.SerializeObject(data);
+            var rawData = $"{uri}&{signData}";
+
+            var keyBytes = Encoding.UTF8.GetBytes(appKey);
+            var dataBytes = Encoding.UTF8.GetBytes(rawData);
+            using (var hmac = new HMACSHA256(keyBytes))
+            {
+                var hashBytes = hmac.ComputeHash(dataBytes);
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            }
+        }
+
+        /// <summary>
+        /// 生成signature
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="sessionKey"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException"></exception>
+        public static string GenerateSignature<T>(string sessionKey, T data)
+        {
+            if (string.IsNullOrWhiteSpace(sessionKey))
+            {
+                throw new ArgumentNullException("sessionKey");
+            }
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+
+            var signData = JsonConvert.SerializeObject(data);
+            var keyBytes = Encoding.UTF8.GetBytes(sessionKey);
+            var dataBytes = Encoding.UTF8.GetBytes(signData);
+
+            using (var hmac = new HMACSHA256(keyBytes))
+            {
+                var hashBytes = hmac.ComputeHash(dataBytes);
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            }
         }
         #endregion
     }
