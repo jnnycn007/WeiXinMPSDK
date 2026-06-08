@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-		<Version>3.30.4</Version>
+		<Version>3.31.0</Version>
 		<LangVersion>10.0</LangVersion>
 		<AssemblyName>Senparc.Weixin.Work</AssemblyName>
 		<RootNamespace>Senparc.Weixin.Work</RootNamespace>
@@ -224,6 +224,7 @@
 			2、fix: 企业微信群机器人发送文件消息时提示 media_id missing #3236 感谢 @609394359
 			[2026-05-23] v3.30.3 fix: 修复 MediaApi 文件上传接口 fileDictionary 格式错误，导致媒体文件为空的问题
 			[2026-05-23] v3.30.4 feat: 添加 appid 和 pagepath 属性以支持企业微信图文消息跳转小程序功能
+			[2026-06-08] v3.31.0 feat: 添加日历 API 接口；完善日程接口，新增添加日程参与者、按日历获取日程、取消日程等接口 / PR #3300 / Issue #3298 感谢 @Chenfan0821 @JaneConan
 		</PackageReleaseNotes>
 		<RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
 		<SignAssembly>False</SignAssembly>
