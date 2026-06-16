@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>3.26.0</Version>
+    <Version>3.26.1</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin.WxOpen</AssemblyName>
     <RootNamespace>Senparc.Weixin.WxOpen</RootNamespace>
@@ -193,6 +193,7 @@
 		[2026-01-18] v3.25.0 feat: 增加发送用工消息、解除用工关系 API #3246 感谢 @dodu2014
 		[2026-05-23] v3.25.1 feat: 更新 URL Link API，支持安全提示配置（safety_notice）和扩展响应字段（warn_icon, entrance_url, entrance_icon）
 		[2026-06-02] v3.26.0 feat: add: vpay signature 虚拟支付 ##3294 感谢 @mojinxun
+		[2026-06-17] v3.26.1 fix: 修复小程序虚拟支付接口参数问题（PR #3304） 感谢 @mojinxun @lilinjian2001
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2026.6.8</Version>
+    <Version>2026.6.17</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin.All</AssemblyName>
     <RootNamespace>Senparc.Weixin.All</RootNamespace>
@@ -82,6 +82,7 @@
 		[2026-05-23] v2026.5.23 Open v4.24.0 feat: 增加微信认证审核联系人电话字段 #3287 感谢 @mc7246
 		[2026-06-02] v2026.6.0 WxOpen feat: add: vpay signature 虚拟支付 ##3294 感谢 @mojinxun
 		[2026-06-08] v2026.6.8 Work v3.31.0 feat: 添加日历 API 接口；完善日程接口，新增添加日程参与者、按日历获取日程、取消日程等接口 / PR #3300 / Issue #3298 感谢 @Chenfan0821 @JaneConan
+		[2026-06-17] v2026.6.17 WxOpen fix: 修复小程序虚拟支付接口参数问题（PR #3304） 感谢 @mojinxun @lilinjian2001
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>
