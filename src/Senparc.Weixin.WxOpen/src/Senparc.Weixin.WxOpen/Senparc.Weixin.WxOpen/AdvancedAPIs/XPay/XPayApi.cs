@@ -26,6 +26,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     
     
     创建标识：Yaofeng - 20231130
+
+    修改标识：Senparc - 20260617
+    修改描述：添加 iOS 会员订阅签名辅助方法 GenerateAppleSubscribePaySign
 ----------------------------------------------------------------*/
 
 using Newtonsoft.Json;
@@ -1329,6 +1332,18 @@ namespace Senparc.Weixin.WxOpen.AdvancedAPIs.XPay
                 return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
         }
+        /// <summary>
+        /// 生成 iOS 会员订阅（wx.requestAppleSubscribeSign）所需的 pay_sig
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="appKey">小程序虚拟支付 AppKey</param>
+        /// <param name="data">iOS 订阅签名数据（<see cref="RequestAppleSubscribeSignData"/>）</param>
+        /// <returns>pay_sig 字符串</returns>
+        public static string GenerateAppleSubscribePaySign<T>(string appKey, T data)
+        {
+            return GeneratePaySign(appKey, "requestAppleSubscribeSign", data);
+        }
         #endregion
     }
 }
+

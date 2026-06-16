@@ -56,6 +56,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20231130
     修改描述：v3.17.2 添加“小程序虚拟支付”相关事件
 
+    修改标识：Senparc - 20260617
+    修改描述：v3.27.0 添加 iOS 会员订阅相关事件处理方法
+
 ----------------------------------------------------------------*/
 
 using Senparc.NeuChar.Entities;
@@ -158,6 +161,12 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
                     break;
                 case Event.xpay_refund_notify:
                     responseMessage = OnEvent_XPayRefundNotify(RequestMessage as RequestMessageEvent_XPayRefundNotify);
+                    break;
+                case Event.xpay_apple_subscribe_signing_result_notify:
+                    responseMessage = OnEvent_XPayAppleSubscribeSigningResultNotify(RequestMessage as RequestMessageEvent_XPayAppleSubscribeSigningResultNotify);
+                    break;
+                case Event.xpay_subscribe_ios_refund_query_notify:
+                    responseMessage = OnEvent_XPaySubscribeIosRefundQueryNotify(RequestMessage as RequestMessageEvent_XPaySubscribeIosRefundQueryNotify);
                     break;
                 #endregion
 
@@ -400,6 +409,14 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         {
             return DefaultResponseMessage(requestMessage);
         }
+        public virtual IResponseMessageBase OnEvent_XPayAppleSubscribeSigningResultNotify(RequestMessageEvent_XPayAppleSubscribeSigningResultNotify requestMessage)
+        {
+            return DefaultResponseMessage(requestMessage);
+        }
+        public virtual IResponseMessageBase OnEvent_XPaySubscribeIosRefundQueryNotify(RequestMessageEvent_XPaySubscribeIosRefundQueryNotify requestMessage)
+        {
+            return DefaultResponseMessage(requestMessage);
+        }
         #endregion
 
         #endregion
@@ -497,6 +514,12 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
                     break;
                 case Event.xpay_refund_notify:
                     responseMessage = await OnEvent_XPayRefundNotifyAsync(RequestMessage as RequestMessageEvent_XPayRefundNotify);
+                    break;
+                case Event.xpay_apple_subscribe_signing_result_notify:
+                    responseMessage = await OnEvent_XPayAppleSubscribeSigningResultNotifyAsync(RequestMessage as RequestMessageEvent_XPayAppleSubscribeSigningResultNotify);
+                    break;
+                case Event.xpay_subscribe_ios_refund_query_notify:
+                    responseMessage = await OnEvent_XPaySubscribeIosRefundQueryNotifyAsync(RequestMessage as RequestMessageEvent_XPaySubscribeIosRefundQueryNotify);
                     break;
                 #endregion
 
@@ -756,6 +779,26 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         public virtual async Task<IResponseMessageBase> OnEvent_XPayRefundNotifyAsync(RequestMessageEvent_XPayRefundNotify requestMessage)
         {
             return await DefaultAsyncMethod(requestMessage, () => OnEvent_XPayRefundNotify(requestMessage)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 小程序虚拟支付 iOS 会员订阅 - 签约结果推送
+        /// </summary>
+        /// <param name="requestMessage"></param>
+        /// <returns></returns>
+        public virtual async Task<IResponseMessageBase> OnEvent_XPayAppleSubscribeSigningResultNotifyAsync(RequestMessageEvent_XPayAppleSubscribeSigningResultNotify requestMessage)
+        {
+            return await DefaultAsyncMethod(requestMessage, () => OnEvent_XPayAppleSubscribeSigningResultNotify(requestMessage)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 小程序虚拟支付 iOS 会员订阅 - 退款推送
+        /// </summary>
+        /// <param name="requestMessage"></param>
+        /// <returns></returns>
+        public virtual async Task<IResponseMessageBase> OnEvent_XPaySubscribeIosRefundQueryNotifyAsync(RequestMessageEvent_XPaySubscribeIosRefundQueryNotify requestMessage)
+        {
+            return await DefaultAsyncMethod(requestMessage, () => OnEvent_XPaySubscribeIosRefundQueryNotify(requestMessage)).ConfigureAwait(false);
         }
         #endregion
 

@@ -123,6 +123,12 @@ namespace Senparc.Weixin.WxOpen.MessageContexts
                         case "XPAY_REFUND_NOTIFY": // 虚拟支付 退款推送
                             requestMessage = new RequestMessageEvent_XPayRefundNotify();
                             break;
+                        case "XPAY_APPLE_SUBSCRIBE_SIGNING_RESULT_NOTIFY": // 虚拟支付 iOS 会员订阅签约结果推送
+                            requestMessage = new RequestMessageEvent_XPayAppleSubscribeSigningResultNotify();
+                            break;
+                        case "XPAY_SUBSCRIBE_IOS_REFUND_QUERY_NOTIFY": // 虚拟支付 iOS 会员订阅退款推送
+                            requestMessage = new RequestMessageEvent_XPaySubscribeIosRefundQueryNotify();
+                            break;
                         default://其他意外类型（也可以选择抛出异常）
                             requestMessage = new RequestMessageEventBase();
                             break;

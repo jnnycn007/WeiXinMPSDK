@@ -39,6 +39,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20231202
     修改描述：v3.17.2 Event 添加“小程序虚拟支付”相关枚举
 
+    修改标识：Senparc - 20260617
+    修改描述：v3.27.0 Event 添加"iOS 会员订阅"推送事件枚举
+
 ----------------------------------------------------------------*/
 
 using System.ComponentModel;
@@ -140,6 +143,16 @@ namespace Senparc.Weixin.WxOpen
         /// 退款推送
         /// </summary>
         xpay_refund_notify,
+
+        /// <summary>
+        /// iOS 会员订阅签约结果推送
+        /// </summary>
+        xpay_apple_subscribe_signing_result_notify,
+
+        /// <summary>
+        /// iOS 会员订阅退款推送
+        /// </summary>
+        xpay_subscribe_ios_refund_query_notify,
         #endregion
     }
 
