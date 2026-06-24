@@ -22,6 +22,9 @@
     修改标识：Senparc - 20181223
     修改描述：v4.3.1 修正 MiniProgramInfo 中的 categories 属性类型
 
+    修改标识：Senparc - 20260616
+    修改描述：v4.24.1 添加 AuthorizerInfo 中的 store_info、talent_info、supplier_info 属性
+
 ----------------------------------------------------------------*/
 
 using System;
@@ -97,6 +100,21 @@ namespace Senparc.Weixin.Open.ComponentAPIs
 
         public MiniProgramInfo MiniProgramInfo { get; set; }
 
+        /// <summary>
+        /// 小店账号类型信息
+        /// </summary>
+        public StoreInfo store_info { get; set; }
+
+        /// <summary>
+        /// 带货达人账号类型信息
+        /// </summary>
+        public TalentInfo talent_info { get; set; }
+
+        /// <summary>
+        /// 供货商账号类型信息
+        /// </summary>
+        public SupplierInfo supplier_info { get; set; }
+
     }
 
     [Serializable]
@@ -150,6 +168,42 @@ namespace Senparc.Weixin.Open.ComponentAPIs
     {
         public string first { get; set; }
         public string second { get; set; }
+    }
+
+    /// <summary>
+    /// 小店账号类型信息
+    /// </summary>
+    [Serializable]
+    public class StoreInfo
+    {
+        /// <summary>
+        /// 小店账号类型
+        /// </summary>
+        public int id { get; set; }
+    }
+
+    /// <summary>
+    /// 带货达人账号类型信息
+    /// </summary>
+    [Serializable]
+    public class TalentInfo
+    {
+        /// <summary>
+        /// 带货达人账号类型
+        /// </summary>
+        public int id { get; set; }
+    }
+
+    /// <summary>
+    /// 供货商账号类型信息
+    /// </summary>
+    [Serializable]
+    public class SupplierInfo
+    {
+        /// <summary>
+        /// 供货商账号类型
+        /// </summary>
+        public int id { get; set; }
     }
 
     //[Obsolete("此类已过期，请使用AuthorizationInfo")]
