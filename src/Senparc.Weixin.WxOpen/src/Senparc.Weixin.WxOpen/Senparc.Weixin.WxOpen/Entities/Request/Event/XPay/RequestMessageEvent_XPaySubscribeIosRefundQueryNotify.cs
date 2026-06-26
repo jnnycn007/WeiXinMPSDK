@@ -23,33 +23,43 @@ namespace Senparc.Weixin.WxOpen.Entities
         }
 
         /// <summary>
-        /// 用户 openid
+        /// 问询时间，Unix时间戳
         /// </summary>
-        public string OpenId { get; set; }
+        public string refund_time { get; set; }
 
         /// <summary>
-        /// 业务订单号
+        /// 该笔退款的订单时间（退款订单对应的交易时间），Unix时间戳
         /// </summary>
-        public string OutTradeNo { get; set; }
+        public string order_time { get; set; }
 
         /// <summary>
-        /// 环境配置 0：现网环境（正式环境）1：沙箱环境
+        /// Apple 支付票据号
         /// </summary>
-        public int Env { get; set; }
+        public string channel_bill { get; set; }
 
         /// <summary>
-        /// 退款结果，0 为成功，非 0 为失败
+        /// 道具 id
         /// </summary>
-        public int RetCode { get; set; }
+        public string product_id { get; set; }
 
         /// <summary>
-        /// 退款结果详情，失败时为退款失败原因
+        /// 道具/代币数量
         /// </summary>
-        public string RetMsg { get; set; }
+        public string p_count { get; set; }
 
         /// <summary>
-        /// 透传数据
+        /// 用户请求退款的原因
         /// </summary>
-        public string Attach { get; set; }
+        public string refund_request_reason { get; set; }
+
+        /// <summary>
+        /// 发货状态，0 : 未发货 1：已发货 2：发货中
+        /// </summary>
+        public string provide_status { get; set; }
+
+        /// <summary>
+        /// 退款对应支付订单号
+        /// </summary>
+        public string pay_order_id { get; set; }
     }
 }
