@@ -330,7 +330,7 @@ app.UseMessageHandlerForMp("/WeixinAsync",
 * 已经支持分布式缓存及缓存策略扩展（默认支持：本地缓存、Redis、Memcached，可自由扩展），开发过程无需关心所使用缓存的类型，可在配置文件或运行过程中自由切换。
 
 > 1.目前官方的 API 都已完美集成，除非有特殊说明，所有升级都会尽量确保向下兼容，所以已经发布的版本请放心使用或直接升级（覆盖）最新的 dll，建议使用 [Nuget](https://www.nuget.org/) 进行更新。<br>
-> 2. 您也可以自行修改并编译代码，打开 [Senparc.Weixin.Sample.Net8.sln](/Samples/All/net8-mvc/) 解决方案即可看到所有源码。当编译模式为 `Release` 时，将自动生成本地 Nuget 包（默认生成到 `/src/BuildOutPut/` 文件夹下）。
+> 2. 您也可以自行修改并编译代码，打开 [Senparc.Weixin.Sample.Net10.sln](/Samples/All/net10-mvc/) 解决方案即可看到所有源码。当编译模式为 `Release` 时，将自动生成本地 Nuget 包（默认生成到 `/src/BuildOutPut/` 文件夹下）。
 
 ## 💾 源码项目文件夹说明（src文件夹下）
 
