@@ -316,7 +316,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                 //下载交易账单
                 if (result.VerifySignSuccess == true)
                 {
-                    var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.url, null, requestMethod: ApiRequestMethod.GET);
+                    using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.url, null, requestMethod: ApiRequestMethod.GET);
                     fileStream.Seek(0, SeekOrigin.Begin);
                     await responseMessage.Content.CopyToAsync(fileStream);
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -362,7 +362,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                 //下载交易账单
                 if (result.VerifySignSuccess == true)
                 {
-                    var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.url, null, requestMethod: ApiRequestMethod.GET);
+                    using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.url, null, requestMethod: ApiRequestMethod.GET);
                     fileStream.Seek(0, SeekOrigin.Begin);
                     await responseMessage.Content.CopyToAsync(fileStream);
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -405,4 +405,3 @@ namespace Senparc.Weixin.TenPayV3.Apis
         #endregion
     }
 }
-

@@ -95,10 +95,12 @@ namespace Senparc.Weixin.TenPayV3.Helpers
                     Convert.ToBase64String(publicKeyParam.Modulus.ToByteArrayUnsigned()),
                     Convert.ToBase64String(publicKeyParam.Exponent.ToByteArrayUnsigned()));
 
-                var rsa = new RSACryptoServiceProvider();
-                RSAFromXmlString(rsa, publicKeyXml);
-                var buff = rsa.Encrypt(Encoding.UTF8.GetBytes(text), RSAEncryptionPadding.OaepSHA1);
-                return Convert.ToBase64String(buff);
+                using (var rsa = new RSACryptoServiceProvider())
+                {
+                    RSAFromXmlString(rsa, publicKeyXml);
+                    var buff = rsa.Encrypt(Encoding.UTF8.GetBytes(text), RSAEncryptionPadding.OaepSHA1);
+                    return Convert.ToBase64String(buff);
+                }
             }
             #endregion
 
@@ -109,10 +111,17 @@ namespace Senparc.Weixin.TenPayV3.Helpers
             }
             else
             {
-                var x509 = new X509Certificate2(Encoding.UTF8.GetBytes(publicKey));
-                var rsa = x509.GetRSAPublicKey();
-                var buff = rsa.Encrypt(Encoding.UTF8.GetBytes(text), RSAEncryptionPadding.OaepSHA1);
-                return Convert.ToBase64String(buff);
+                using (var x509 = new X509Certificate2(Encoding.UTF8.GetBytes(publicKey)))
+                using (var rsa = x509.GetRSAPublicKey())
+                {
+                    if (rsa == null)
+                    {
+                        throw new CryptographicException("证书中未包含 RSA 公钥。");
+                    }
+
+                    var buff = rsa.Encrypt(Encoding.UTF8.GetBytes(text), RSAEncryptionPadding.OaepSHA1);
+                    return Convert.ToBase64String(buff);
+                }
             }
         }
 
@@ -281,4 +290,3 @@ namespace Senparc.Weixin.TenPayV3.Helpers
         }
     }
 }
-

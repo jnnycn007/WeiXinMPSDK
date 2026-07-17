@@ -97,92 +97,100 @@ namespace Senparc.Weixin.Work.Tencent
                 codeLen = 16;
             }
             string[] arr = codeSerial.Split(',');
-            string code = "";
-            int randValue = -1;
-            Random rand = new Random(unchecked((int)SystemTime.Now.Ticks));
-            for (int i = 0; i < codeLen; i++)
+            var code = new StringBuilder(codeLen);
+            var randomByte = new byte[1];
+            var unbiasedUpperBound = byte.MaxValue + 1 - ((byte.MaxValue + 1) % arr.Length);
+            using (var random = RandomNumberGenerator.Create())
             {
-                randValue = rand.Next(0, arr.Length - 1);
-                code += arr[randValue];
+                for (int i = 0; i < codeLen; i++)
+                {
+                    do
+                    {
+                        random.GetBytes(randomByte);
+                    }
+                    while (randomByte[0] >= unbiasedUpperBound);
+
+                    code.Append(arr[randomByte[0] % arr.Length]);
+                }
             }
-            return code;
+            return code.ToString();
         }
 
         private static String AES_encrypt(String Input, byte[] Iv, byte[] Key)
         {
+            SymmetricAlgorithm aes;
 #if NET462
-            var aes = new RijndaelManaged();
+            aes = new RijndaelManaged();
 #else
-            var aes = Aes.Create();
+            aes = Aes.Create();
 #endif
-            //秘钥的大小，以位为单位
-            aes.KeySize = 256;
-            //支持的块大小
-            aes.BlockSize = 128;
-            //填充模式
-            aes.Padding = PaddingMode.PKCS7;
-            aes.Mode = CipherMode.CBC;
-            aes.Key = Key;
-            aes.IV = Iv;
-            var encrypt = aes.CreateEncryptor(aes.Key, aes.IV);
-            byte[] xBuff = null;
-
-            using (var ms = new MemoryStream())
+            using (aes)
             {
-                using (var cs = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
+                //秘钥的大小，以位为单位
+                aes.KeySize = 256;
+                //支持的块大小
+                aes.BlockSize = 128;
+                //填充模式
+                aes.Padding = PaddingMode.PKCS7;
+                aes.Mode = CipherMode.CBC;
+                aes.Key = Key;
+                aes.IV = Iv;
+                using (var encrypt = aes.CreateEncryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream())
                 {
-                    byte[] xXml = Encoding.UTF8.GetBytes(Input);
-                    cs.Write(xXml, 0, xXml.Length);
+                    using (var cs = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
+                    {
+                        byte[] xXml = Encoding.UTF8.GetBytes(Input);
+                        cs.Write(xXml, 0, xXml.Length);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
                 }
-                xBuff = ms.ToArray();
             }
-            String Output = Convert.ToBase64String(xBuff);
-            return Output;
         }
 
         private static String AES_encrypt(byte[] Input, byte[] Iv, byte[] Key)
         {
+            SymmetricAlgorithm aes;
 #if NET462
-            var aes = new RijndaelManaged();
+            aes = new RijndaelManaged();
 #else
-            var aes = Aes.Create();
+            aes = Aes.Create();
 #endif
-            //秘钥的大小，以位为单位
-            aes.KeySize = 256;
-            //支持的块大小
-            aes.BlockSize = 128;
-            //填充模式
-            //aes.Padding = PaddingMode.PKCS7;
-            aes.Padding = PaddingMode.None;
-            aes.Mode = CipherMode.CBC;
-            aes.Key = Key;
-            aes.IV = Iv;
-            var encrypt = aes.CreateEncryptor(aes.Key, aes.IV);
-            byte[] xBuff = null;
-
-            #region 自己进行PKCS7补位，用系统自己带的不行
-            byte[] msg = new byte[Input.Length + 32 - Input.Length % 32];
-            Array.Copy(Input, msg, Input.Length);
-            byte[] pad = KCS7Encoder(Input.Length);
-            Array.Copy(pad, 0, msg, Input.Length, pad.Length);
-            #endregion
-
-            #region 注释的也是一种方法，效果一样
-            //ICryptoTransform transform = aes.CreateEncryptor();
-            //byte[] xBuff = transform.TransformFinalBlock(msg, 0, msg.Length);
-            #endregion
-
-            using (var ms = new MemoryStream())
+            using (aes)
             {
-                using (var cs = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
-                {
-                    cs.Write(msg, 0, msg.Length);
-                }
-                xBuff = ms.ToArray();
-            }
+                //秘钥的大小，以位为单位
+                aes.KeySize = 256;
+                //支持的块大小
+                aes.BlockSize = 128;
+                //填充模式
+                //aes.Padding = PaddingMode.PKCS7;
+                aes.Padding = PaddingMode.None;
+                aes.Mode = CipherMode.CBC;
+                aes.Key = Key;
+                aes.IV = Iv;
 
-            String Output = Convert.ToBase64String(xBuff);
-            return Output;
+                #region 自己进行PKCS7补位，用系统自己带的不行
+                byte[] msg = new byte[Input.Length + 32 - Input.Length % 32];
+                Array.Copy(Input, msg, Input.Length);
+                byte[] pad = KCS7Encoder(Input.Length);
+                Array.Copy(pad, 0, msg, Input.Length, pad.Length);
+                #endregion
+
+                #region 注释的也是一种方法，效果一样
+                //ICryptoTransform transform = aes.CreateEncryptor();
+                //byte[] xBuff = transform.TransformFinalBlock(msg, 0, msg.Length);
+                #endregion
+
+                using (var encrypt = aes.CreateEncryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
+                    {
+                        cs.Write(msg, 0, msg.Length);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+            }
         }
 
         private static byte[] KCS7Encoder(int text_length)
@@ -217,31 +225,31 @@ namespace Senparc.Weixin.Work.Tencent
         }
         private static byte[] AES_decrypt(String Input, byte[] Iv, byte[] Key)
         {
+            SymmetricAlgorithm aes;
 #if NET462
-            var aes = new RijndaelManaged();
+            aes = new RijndaelManaged();
 #else
-            var aes = Aes.Create();
+            aes = Aes.Create();
 #endif
-            aes.KeySize = 256;
-            aes.BlockSize = 128;
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.None;
-            aes.Key = Key;
-            aes.IV = Iv;
-            var decrypt = aes.CreateDecryptor(aes.Key, aes.IV);
-            byte[] xBuff = null;
-            using (var ms = new MemoryStream())
+            using (aes)
             {
-                using (var cs = new CryptoStream(ms, decrypt, CryptoStreamMode.Write))
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.None;
+                aes.Key = Key;
+                aes.IV = Iv;
+                using (var decrypt = aes.CreateDecryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream())
                 {
-                    byte[] xXml = Convert.FromBase64String(Input);
-                    byte[] msg = new byte[xXml.Length + 32 - xXml.Length % 32];
-                    Array.Copy(xXml, msg, xXml.Length);
-                    cs.Write(xXml, 0, xXml.Length);
+                    using (var cs = new CryptoStream(ms, decrypt, CryptoStreamMode.Write))
+                    {
+                        byte[] xXml = Convert.FromBase64String(Input);
+                        cs.Write(xXml, 0, xXml.Length);
+                    }
+                    return decode2(ms.ToArray());
                 }
-                xBuff = decode2(ms.ToArray());
             }
-            return xBuff;
         }
         private static byte[] decode2(byte[] decrypted)
         {

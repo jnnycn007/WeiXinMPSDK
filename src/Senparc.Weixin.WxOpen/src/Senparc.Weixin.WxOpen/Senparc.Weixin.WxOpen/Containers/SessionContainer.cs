@@ -129,7 +129,7 @@ namespace Senparc.Weixin.WxOpen.Containers
             if (bag.ExpireTime < SystemTime.Now)
             {
                 //已经过期
-                Cache.RemoveFromCache(key);
+                RemoveFromCache(key);
                 return null;
             }
 
@@ -199,7 +199,7 @@ namespace Senparc.Weixin.WxOpen.Containers
             if (bag.ExpireTime < SystemTime.Now)
             {
                 //已经过期
-                await Cache.RemoveFromCacheAsync(key).ConfigureAwait(false);
+                await RemoveFromCacheAsync(key).ConfigureAwait(false);
                 return null;
             }
 
@@ -253,4 +253,3 @@ namespace Senparc.Weixin.WxOpen.Containers
         #endregion
     }
 }
-

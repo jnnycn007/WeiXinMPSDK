@@ -60,6 +60,8 @@ namespace Senparc.Weixin.TenPayV3
     /// </summary>
     public class TenPayV3InfoCollection : Dictionary<string, TenPayV3Info>
     {
+        private readonly object _syncRoot = new object();
+
         /// <summary>
         /// 微信支付信息集合，Key为商户号（MchId）
         /// </summary>
@@ -114,18 +116,76 @@ namespace Senparc.Weixin.TenPayV3
         {
             get
             {
-                if (!base.ContainsKey(key))
+                lock (_syncRoot)
                 {
-                    throw new WeixinException(string.Format("TenPayV3InfoCollection尚未注册Mch：{0}", key));
-                }
-                else
-                {
-                    return base[key];
+                    if (!base.TryGetValue(key, out var value))
+                    {
+                        throw new WeixinException(string.Format("TenPayV3InfoCollection尚未注册Mch：{0}", key));
+                    }
+
+                    return value;
                 }
             }
             set
             {
-                base[key] = value;
+                lock (_syncRoot)
+                {
+                    base[key] = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取当前注册数量。
+        /// </summary>
+        public new int Count
+        {
+            get
+            {
+                lock (_syncRoot)
+                {
+                    return base.Count;
+                }
+            }
+        }
+
+        public new void Add(string key, TenPayV3Info value)
+        {
+            lock (_syncRoot)
+            {
+                base.Add(key, value);
+            }
+        }
+
+        public new bool Remove(string key)
+        {
+            lock (_syncRoot)
+            {
+                return base.Remove(key);
+            }
+        }
+
+        public new bool ContainsKey(string key)
+        {
+            lock (_syncRoot)
+            {
+                return base.ContainsKey(key);
+            }
+        }
+
+        public new bool TryGetValue(string key, out TenPayV3Info value)
+        {
+            lock (_syncRoot)
+            {
+                return base.TryGetValue(key, out value);
+            }
+        }
+
+        public new void Clear()
+        {
+            lock (_syncRoot)
+            {
+                base.Clear();
             }
         }
 
@@ -140,4 +200,3 @@ namespace Senparc.Weixin.TenPayV3
        
     }
 }
-

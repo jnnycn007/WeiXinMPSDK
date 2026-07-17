@@ -42,7 +42,9 @@ using Senparc.CO2NET.Trace;
 using Senparc.Weixin.Entities;
 using Senparc.Weixin.TenPayV3.Apis;
 using Senparc.Weixin.TenPayV3.Entities;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Senparc.Weixin.TenPayV3
@@ -52,7 +54,10 @@ namespace Senparc.Weixin.TenPayV3
     /// </summary>
     public class TenPayV3Info
     {
-        private PublicKeyCollection publicKeys;
+        private static readonly TimeSpan PublicKeyCacheDuration = TimeSpan.FromHours(1);
+        private readonly SemaphoreSlim _publicKeyRefreshLock = new SemaphoreSlim(1, 1);
+        private PublicKeyCollection _publicKeys;
+        private long _publicKeysExpiresAtUtcTicks;
 
         /// <summary>
         /// 第三方用户唯一凭证appid
@@ -218,15 +223,67 @@ namespace Senparc.Weixin.TenPayV3
         /// </summary>
         public async Task<PublicKeyCollection> GetPublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
         {
-            //TODO:可以升级为从缓存读取
-
-            if (publicKeys == null)
+            var cachedKeys = Volatile.Read(ref _publicKeys);
+            if (IsPublicKeyCacheFresh(cachedKeys))
             {
-                //获取最新的 Key
-                var basePayApis = new BasePayApis(tenpayV3Setting);
-                publicKeys = await basePayApis.GetPublicKeysAsync();
+                return cachedKeys;
             }
-            return publicKeys;
+
+            await _publicKeyRefreshLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                cachedKeys = Volatile.Read(ref _publicKeys);
+                if (IsPublicKeyCacheFresh(cachedKeys))
+                {
+                    return cachedKeys;
+                }
+
+                return await FetchAndCachePublicKeysAsync(tenpayV3Setting).ConfigureAwait(false);
+            }
+            finally
+            {
+                _publicKeyRefreshLock.Release();
+            }
+        }
+
+        private bool IsPublicKeyCacheFresh(PublicKeyCollection keys)
+        {
+            return keys != null && DateTimeOffset.UtcNow.UtcDateTime.Ticks < Interlocked.Read(ref _publicKeysExpiresAtUtcTicks);
+        }
+
+        private async Task<PublicKeyCollection> FetchAndCachePublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+        {
+            var basePayApis = new BasePayApis(tenpayV3Setting);
+            var keys = await basePayApis.GetPublicKeysAsync().ConfigureAwait(false) ?? new PublicKeyCollection();
+
+            Volatile.Write(ref _publicKeys, keys);
+            Interlocked.Exchange(
+                ref _publicKeysExpiresAtUtcTicks,
+                DateTimeOffset.UtcNow.Add(PublicKeyCacheDuration).UtcDateTime.Ticks);
+
+            return keys;
+        }
+
+        private async Task<PublicKeyCollection> RefreshPublicKeysAfterMissAsync(
+            PublicKeyCollection observedKeys,
+            ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+        {
+            await _publicKeyRefreshLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                // 如果等待锁期间已有请求完成刷新，直接复用该结果，避免同一序列号未命中时重复请求。
+                var currentKeys = Volatile.Read(ref _publicKeys);
+                if (!ReferenceEquals(observedKeys, currentKeys))
+                {
+                    return currentKeys;
+                }
+
+                return await FetchAndCachePublicKeysAsync(tenpayV3Setting).ConfigureAwait(false);
+            }
+            finally
+            {
+                _publicKeyRefreshLock.Release();
+            }
         }
 
         /// <summary>
@@ -236,15 +293,23 @@ namespace Senparc.Weixin.TenPayV3
         /// <returns></returns>
         public async Task<string> GetPublicKeyAsync(string serialNumber, ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
         {
-            var keys = await GetPublicKeysAsync(tenpayV3Setting);
+            var keys = await GetPublicKeysAsync(tenpayV3Setting).ConfigureAwait(false);
             if (keys.TryGetValue(serialNumber, out string publicKey))
             {
                 return publicKey;
             }
 
-            SenparcTrace.BaseExceptionLog(new TenpaySecurityException($"公钥序列号不存在！serialNumber:{serialNumber},TenPayV3Info:{this.ToJson(true)}"));
+            // 平台证书/公钥可能刚完成轮换；未命中时立即刷新一次，而不是等待常规缓存过期。
+            keys = await RefreshPublicKeysAfterMissAsync(keys, tenpayV3Setting).ConfigureAwait(false);
+            if (keys != null && keys.TryGetValue(serialNumber, out publicKey))
+            {
+                return publicKey;
+            }
+
+            // 日志仅记录定位所需标识，禁止序列化整个对象（其中包含私钥、APIv3 Key 等敏感信息）。
+            SenparcTrace.BaseExceptionLog(new TenpaySecurityException(
+                $"公钥序列号不存在！serialNumber:{serialNumber},MchId:{MchId},SubMchId:{Sub_MchId}"));
             throw new TenpaySecurityException("公钥序列号不存在！请查看日志！", true);
         }
     }
 }
-

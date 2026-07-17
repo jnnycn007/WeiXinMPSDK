@@ -75,20 +75,8 @@ namespace Senparc.Weixin.WxOpen.Containers
         [Obsolete("请使用 RegisterAsync() 方法")]
         public static void Register(string wxOpenAppId, string wxOpenAppSecret, string name = null)
         {
-            //使用后台任务执行注册，避免阻塞主线程导致性能问题
-            //注册过程本身不会立即获取Token，只是设置注册信息
-            _ = Task.Run(async () => 
-            {
-                try
-                {
-                    await RegisterAsync(wxOpenAppId, wxOpenAppSecret, name).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    //记录异常但不阻塞调用方
-                    Senparc.CO2NET.Trace.SenparcTrace.SendCustomLog("WxOpen.AccessTokenContainer.Register 异步注册出错", ex.Message);
-                }
-            });
+            //同步入口必须在返回前完成注册，否则紧接着读取容器时会出现未注册竞态。
+            RegisterAsync(wxOpenAppId, wxOpenAppSecret, name).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         #region AccessToken
@@ -137,6 +125,7 @@ namespace Senparc.Weixin.WxOpen.Containers
 
             using (Cache.BeginCacheLock(LockResourceName, wxOpenAppId))//同步锁
             {
+                accessTokenBag = TryGetItem(wxOpenAppId);//获锁后重新读取，避免使用分布式缓存中的旧副本重复刷新
                 if (getNewToken || accessTokenBag.AccessTokenExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -240,6 +229,7 @@ namespace Senparc.Weixin.WxOpen.Containers
 
             using (await Cache.BeginCacheLockAsync(LockResourceName, wxOpenAppId).ConfigureAwait(false))//同步锁
             {
+                accessTokenBag = await TryGetItemAsync(wxOpenAppId).ConfigureAwait(false);//获锁后重新读取，避免使用分布式缓存中的旧副本重复刷新
                 if (getNewToken || accessTokenBag.AccessTokenExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -259,4 +249,3 @@ namespace Senparc.Weixin.WxOpen.Containers
         #endregion
     }
 }
-

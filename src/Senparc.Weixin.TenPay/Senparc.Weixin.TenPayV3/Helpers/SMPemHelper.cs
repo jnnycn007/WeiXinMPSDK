@@ -30,8 +30,11 @@ namespace Senparc.Weixin.TenPayV3.Helpers
         public static ECPublicKeyParameters LoadPublicKeyToParameters(byte[] publicKeyBytes)
         {
             //使用 X509Certificate2 证书
-            var x509 = new X509Certificate2(publicKeyBytes);
-            var hex = x509.GetPublicKeyString();
+            string hex;
+            using (var x509 = new X509Certificate2(publicKeyBytes))
+            {
+                hex = x509.GetPublicKeyString();
+            }
             // 假设hex字符串是不带前缀的未压缩公钥（65字节：1字节0x04 + 32字节X坐标 + 32字节Y坐标）  
             if (hex.Length != 130) // 04 + 2 * 32 * 2 (hex字符)  
             {

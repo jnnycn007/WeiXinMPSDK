@@ -52,6 +52,7 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
@@ -126,20 +127,6 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
             _signer = TenPayCertFactory.GetSigner(CertType);
             _verifier = TenPayCertFactory.GetVerifier(CertType);
 
-            #region 配置UA
-
-            //ACCEPT header
-            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-
-            //User-Agent header
-            var userAgentValues = UserAgentValues.Instance;
-            _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Senparc.Weixin.TenPayV3-C#", userAgentValues.TenPayV3Version));
-            _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue($"(Senparc.Weixin {userAgentValues.SenparcWeixinVersion})"));
-            _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(".NET", userAgentValues.RuntimeVersion));
-            _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue($"({userAgentValues.OSVersion})"));
-
-            #endregion
         }
 
         public async Task<T> SendAsync<T>(string url, object data, int timeOut = Senparc.Weixin.Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
@@ -150,10 +137,13 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
             try
             {
-                var request = new HttpRequestMessage(method, url);
+                if (timeOut <= 0 && timeOut != Timeout.Infinite)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(timeOut), "超时时间必须大于 0，或使用 Timeout.Infinite。 ");
+                }
 
-                //设置超时时间
-                _client.Timeout = TimeSpan.FromMilliseconds(timeOut);
+                using var request = new HttpRequestMessage(method, url);
+                SetRequestHeaders(request);
 
                 //设置请求 Json 字符串
                 string jsonString = data != null
@@ -167,7 +157,13 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
                 request.Headers.Add("Authorization", $"WECHATPAY2-{_signer.GetAlgorithm()} {authorization}");
 
                 // 发送请求
-                var responseMessage = await _client.SendAsync(request);
+                using var timeoutCancellationTokenSource = new CancellationTokenSource();
+                if (timeOut != Timeout.Infinite)
+                {
+                    timeoutCancellationTokenSource.CancelAfter(timeOut);
+                }
+
+                using var responseMessage = await _client.SendAsync(request, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
 
                 //获取响应结果
                 string content = await responseMessage.Content.ReadAsStringAsync();//TODO:如果不正确也要返回详情
@@ -207,6 +203,18 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
                 return result;
             }
+        }
+
+        private static void SetRequestHeaders(HttpRequestMessage request)
+        {
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+
+            var userAgentValues = UserAgentValues.Instance;
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue("Senparc.Weixin.TenPayV3-C#", userAgentValues.TenPayV3Version));
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue($"(Senparc.Weixin {userAgentValues.SenparcWeixinVersion})"));
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue(".NET", userAgentValues.RuntimeVersion));
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue($"({userAgentValues.OSVersion})"));
         }
 
         protected HttpMethod GetHttpMethod(ApiRequestMethod requestMethod)
@@ -282,4 +290,3 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
         }
     }
 }
-

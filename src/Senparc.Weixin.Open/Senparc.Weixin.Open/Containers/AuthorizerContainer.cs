@@ -185,20 +185,8 @@ namespace Senparc.Weixin.Open.Containers
         [Obsolete("请使用 RegisterAsync() 方法")]
         private static void Register(string componentAppId, string authorizerAppId, string name = null)
         {
-            //使用后台任务执行注册，避免阻塞主线程导致性能问题
-            //注册过程本身不会立即获取Ticket，只是设置注册信息
-            _ = Task.Run(async () => 
-            {
-                try
-                {
-                    await RegisterAsync(componentAppId, authorizerAppId, name).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    //记录异常但不阻塞调用方
-                    Senparc.CO2NET.Trace.SenparcTrace.SendCustomLog("Open.AuthorizerContainer.Register 异步注册出错", ex.Message);
-                }
-            });
+            //同步入口必须在返回前完成注册，否则紧接着读取容器时会出现未注册竞态。
+            RegisterAsync(componentAppId, authorizerAppId, name).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -234,6 +222,7 @@ namespace Senparc.Weixin.Open.Containers
             var authorizerBag = TryGetItem(authorizerAppid);
             using (Cache.BeginCacheLock(LockResourceName + ".GetAuthorizationInfo", authorizerAppid))//同步锁
             {
+                authorizerBag = TryGetItem(authorizerAppid);//获锁后重新读取并二次检查过期状态
                 //更新Authorization
                 if (getNewTicket || authorizerBag.AuthorizationInfoExpireTime <= SystemTime.Now)
                 {
@@ -295,6 +284,7 @@ namespace Senparc.Weixin.Open.Containers
             var authorizerBag = TryGetItem(authorizerAppid);
             using (Cache.BeginCacheLock(LockResourceName + ".GetAuthorizerInfoResult", authorizerAppid))//同步锁
             {
+                authorizerBag = TryGetItem(authorizerAppid);//获锁后重新读取最新授权方信息
                 //更新AuthorizerInfo
                 if (getNewTicket || authorizerBag.AuthorizerInfo.user_name == null)
                 {
@@ -464,6 +454,7 @@ namespace Senparc.Weixin.Open.Containers
             var accessTicketBag = TryGetItem(authorizerAppid);
             using (Cache.BeginCacheLock(LockResourceName + ".GetJsApiTicketResult", authorizerAppid))//同步锁
             {
+                accessTicketBag = TryGetItem(authorizerAppid);//获锁后重新读取并二次检查过期状态
                 if (getNewTicket || accessTicketBag.JsApiTicketExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -561,6 +552,7 @@ namespace Senparc.Weixin.Open.Containers
             var authorizerBag = await TryGetItemAsync(authorizerAppid).ConfigureAwait(false);
             using (await Cache.BeginCacheLockAsync(LockResourceName + ".GetAuthorizationInfo", authorizerAppid).ConfigureAwait(false))//同步锁
             {
+                authorizerBag = await TryGetItemAsync(authorizerAppid).ConfigureAwait(false);//获锁后重新读取并二次检查过期状态
                 //更新Authorization
                 if (getNewTicket || authorizerBag.AuthorizationInfoExpireTime <= SystemTime.Now)
                 {
@@ -624,6 +616,7 @@ namespace Senparc.Weixin.Open.Containers
             var authorizerBag = await TryGetItemAsync(authorizerAppid).ConfigureAwait(false);
             using (await Cache.BeginCacheLockAsync(LockResourceName + ".GetAuthorizerInfoResult", authorizerAppid).ConfigureAwait(false))//同步锁
             {
+                authorizerBag = await TryGetItemAsync(authorizerAppid).ConfigureAwait(false);//获锁后重新读取最新授权方信息
 
                 //更新AuthorizerInfokd
                 if (getNewTicket || authorizerBag.AuthorizerInfo.user_name == null)
@@ -791,6 +784,7 @@ namespace Senparc.Weixin.Open.Containers
             var accessTicketBag = await TryGetItemAsync(authorizerAppid).ConfigureAwait(false);
             using (await Cache.BeginCacheLockAsync(LockResourceName + ".GetJsApiTicketResult", authorizerAppid).ConfigureAwait(false))//同步锁
             {
+                accessTicketBag = await TryGetItemAsync(authorizerAppid).ConfigureAwait(false);//获锁后重新读取并二次检查过期状态
                 if (getNewTicket || accessTicketBag.JsApiTicketExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -811,4 +805,3 @@ namespace Senparc.Weixin.Open.Containers
         #endregion
     }
 }
-

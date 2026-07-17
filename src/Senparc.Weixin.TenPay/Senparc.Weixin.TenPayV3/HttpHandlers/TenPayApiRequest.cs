@@ -51,8 +51,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Senparc.Weixin.TenPayV3
@@ -62,13 +64,54 @@ namespace Senparc.Weixin.TenPayV3
     /// </summary>
     public class TenPayApiRequest
     {
-        private ISenparcWeixinSettingForTenpayV3 _tenpayV3Setting;
-        private Action<HttpClient> _setHeaderAction;
+        private static readonly ConditionalWeakTable<ISenparcWeixinSettingForTenpayV3, Lazy<HttpClient>> HttpClients = new();
+        private static readonly ConditionalWeakTable<Action<HttpClient>, ConditionalWeakTable<ISenparcWeixinSettingForTenpayV3, Lazy<HttpClient>>> CustomHttpClients = new();
+
+        private readonly ISenparcWeixinSettingForTenpayV3 _tenpayV3Setting;
+        private readonly Action<HttpClient> _setHeaderAction;
+        private readonly Lazy<HttpClient> _client;
 
         public TenPayApiRequest(ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3 = null, Action<HttpClient> setHeaderAction = null)
         {
             _tenpayV3Setting = senparcWeixinSettingForTenpayV3 ?? Senparc.Weixin.Config.SenparcWeixinSetting.TenpayV3Setting;
             _setHeaderAction = setHeaderAction;
+            _client = GetOrCreateHttpClient(_tenpayV3Setting, _setHeaderAction);
+        }
+
+        private static Lazy<HttpClient> GetOrCreateHttpClient(ISenparcWeixinSettingForTenpayV3 setting, Action<HttpClient> setHeaderAction)
+        {
+            var clients = setHeaderAction == null
+                ? HttpClients
+                : CustomHttpClients.GetValue(setHeaderAction, _ => new ConditionalWeakTable<ISenparcWeixinSettingForTenpayV3, Lazy<HttpClient>>());
+
+            return clients.GetValue(setting, key => new Lazy<HttpClient>(
+                () => CreateHttpClient(key, setHeaderAction),
+                LazyThreadSafetyMode.ExecutionAndPublication));
+        }
+
+        private static HttpClient CreateHttpClient(ISenparcWeixinSettingForTenpayV3 setting, Action<HttpClient> setHeaderAction)
+        {
+            var client = new HttpClient(new TenPayHttpHandler(setting))
+            {
+                // 共享 HttpClient 不修改全局 Timeout，由每次请求自己的 CancellationToken 控制超时。
+                Timeout = Timeout.InfiniteTimeSpan
+            };
+
+            SetDefaultHeaders(client);
+            setHeaderAction?.Invoke(client);
+            return client;
+        }
+
+        private static void SetDefaultHeaders(HttpClient client)
+        {
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+
+            var userAgentValues = UserAgentValues.Instance;
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Senparc.Weixin.TenPayV3-C#", userAgentValues.TenPayV3Version));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue($"(Senparc.Weixin {userAgentValues.SenparcWeixinVersion})"));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(".NET", userAgentValues.RuntimeVersion));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue($"({userAgentValues.OSVersion})"));
         }
 
         /// <summary>
@@ -77,22 +120,8 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="client"></param>
         public void SetHeader(HttpClient client)
         {
-            //ACCEPT header
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-
-            //User-Agent header
-            var userAgentValues = UserAgentValues.Instance;
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Senparc.Weixin.TenPayV3-C#", userAgentValues.TenPayV3Version));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue($"(Senparc.Weixin {userAgentValues.SenparcWeixinVersion})"));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(".NET", userAgentValues.RuntimeVersion));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue($"({userAgentValues.OSVersion})"));
-
-            // 外部
-            if (_setHeaderAction != null)
-            {
-                _setHeaderAction(client);
-            }
+            SetDefaultHeaders(client);
+            _setHeaderAction?.Invoke(client);
         }
 
         /// <summary>
@@ -103,80 +132,65 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="timeOut"></param>
         /// <param name="requestMethod"></param>
         /// <param name="checkDataNotNull">非 GET 请求情况下，是否强制检查 data 参数不能为 null，默认为 true</param>
-        /// <returns></returns>
+        /// <returns>响应对象由调用方负责释放。</returns>
         public async Task<HttpResponseMessage> GetHttpResponseMessageAsync(string url, object data, int timeOut = Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkDataNotNull = true)
         {
-            try
+            if (timeOut <= 0 && timeOut != Timeout.Infinite)
             {
-                //var co2netHttpClient = CO2NET.HttpUtility.RequestUtility.HttpPost_Common_NetCore(serviceProvider, url, out var hc, contentType: "application/json");
-
-                ////设置参数
-                //var mchid = _tenpayV3Setting.TenPayV3_MchId;
-                //var ser_no = _tenpayV3Setting.TenPayV3_SerialNumber;
-                //var privateKey = _tenpayV3Setting.TenPayV3_PrivateKey;
-
-                ////使用微信支付参数，配置 HttpHandler
-                //TenPayHttpHandler httpHandler = new(mchid, ser_no, privateKey);
-
-                //TODO:此处重构使用ISenparcWeixinSettingForTenpayV3
-                TenPayHttpHandler httpHandler = new(_tenpayV3Setting);
-
-                //创建 HttpClient
-                HttpClient client = new HttpClient(httpHandler);//TODO: 有资源消耗和效率问题
-                //设置超时时间
-                client.Timeout = TimeSpan.FromMilliseconds(timeOut);
-
-                //设置 HTTP 请求头
-                SetHeader(client);
-
-                HttpResponseMessage responseMessage = null;
-                switch (requestMethod)
-                {
-                    case ApiRequestMethod.GET:
-                        responseMessage = await client.GetAsync(url);
-                        WeixinTrace.Log(url); //记录Get的Json数据
-                        break;
-                    //TODO: 此处新增DELETE方法 待测试是否有问题
-                    case ApiRequestMethod.DELETE:
-                        responseMessage = await client.DeleteAsync(url);
-                        WeixinTrace.Log(url); //记录Delete的Json数据
-                        break;
-                    case ApiRequestMethod.POST:
-                    case ApiRequestMethod.PUT:
-                    case ApiRequestMethod.PATCH:
-                        //检查是否为空
-                        if (checkDataNotNull)
-                        {
-                            _ = data ?? throw new ArgumentNullException($"{nameof(data)} 不能为 null！");
-                        }
-
-                        //设置请求 Json 字符串
-                        //var jsonString = SerializerHelper.GetJsonString(data, new CO2NET.Helpers.Serializers.JsonSetting(true));
-                        string jsonString = data != null
-                            ? data.ToJson(false, new Newtonsoft.Json.JsonSerializerSettings() { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore })
-                            : "";
-                        WeixinTrace.SendApiPostDataLog(url, jsonString); //记录Post的Json数据
-
-                        //设置 HttpContent
-                        var hc = new StringContent(jsonString, Encoding.UTF8, mediaType: "application/json");
-                        //获取响应结果
-                        responseMessage = requestMethod switch
-                        {
-                            ApiRequestMethod.POST => await client.PostAsync(url, hc),
-                            ApiRequestMethod.PUT => await client.PutAsync(url, hc),
-                            ApiRequestMethod.PATCH => await client.PatchAsync(url, hc),
-                            _ => throw new ArgumentOutOfRangeException(nameof(requestMethod))
-                        };
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(requestMethod));
-                }
-
-                return responseMessage;
+                throw new ArgumentOutOfRangeException(nameof(timeOut), "超时时间必须大于 0，或使用 Timeout.Infinite。 ");
             }
-            catch (Exception)
+
+            using var request = new HttpRequestMessage(GetHttpMethod(requestMethod), url);
+
+            switch (requestMethod)
             {
-                throw;
+                case ApiRequestMethod.GET:
+                case ApiRequestMethod.DELETE:
+                    WeixinTrace.Log(url);
+                    break;
+                case ApiRequestMethod.POST:
+                case ApiRequestMethod.PUT:
+                case ApiRequestMethod.PATCH:
+                    if (checkDataNotNull)
+                    {
+                        _ = data ?? throw new ArgumentNullException($"{nameof(data)} 不能为 null！");
+                    }
+
+                    string jsonString = data != null
+                        ? data.ToJson(false, new Newtonsoft.Json.JsonSerializerSettings() { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore })
+                        : "";
+                    WeixinTrace.SendApiPostDataLog(url, jsonString);
+                    request.Content = new StringContent(jsonString, Encoding.UTF8, mediaType: "application/json");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(requestMethod));
+            }
+
+            using var timeoutCancellationTokenSource = new CancellationTokenSource();
+            if (timeOut != Timeout.Infinite)
+            {
+                timeoutCancellationTokenSource.CancelAfter(timeOut);
+            }
+
+            return await _client.Value.SendAsync(request, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
+        }
+
+        private static HttpMethod GetHttpMethod(ApiRequestMethod requestMethod)
+        {
+            switch (requestMethod)
+            {
+                case ApiRequestMethod.GET:
+                    return HttpMethod.Get;
+                case ApiRequestMethod.POST:
+                    return HttpMethod.Post;
+                case ApiRequestMethod.PUT:
+                    return HttpMethod.Put;
+                case ApiRequestMethod.PATCH:
+                    return HttpMethod.Patch;
+                case ApiRequestMethod.DELETE:
+                    return HttpMethod.Delete;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(requestMethod));
             }
         }
 
@@ -198,7 +212,7 @@ namespace Senparc.Weixin.TenPayV3
 
             try
             {
-                HttpResponseMessage responseMessage = await GetHttpResponseMessageAsync(url, data, timeOut, requestMethod);
+                using HttpResponseMessage responseMessage = await GetHttpResponseMessageAsync(url, data, timeOut, requestMethod);
 
                 //获取响应结果
                 string content = await responseMessage.Content.ReadAsStringAsync();//TODO:如果不正确也要返回详情
@@ -301,4 +315,3 @@ namespace Senparc.Weixin.TenPayV3
         }
     }
 }
-

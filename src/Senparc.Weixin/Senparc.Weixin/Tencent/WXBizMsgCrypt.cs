@@ -274,21 +274,22 @@ namespace Senparc.Weixin.Tencent
                 raw += AL[i];
             }
 
-            SHA1 sha;
             ASCIIEncoding enc;
             string hash = "";
             try
             {
 #if NET462
-                sha = new SHA1CryptoServiceProvider();
+                using (var sha = new SHA1CryptoServiceProvider())
 #else
-                sha = SHA1.Create();
+                using (var sha = SHA1.Create())
 #endif
-                enc = new ASCIIEncoding();
-                byte[] dataToHash = enc.GetBytes(raw);
-                byte[] dataHashed = sha.ComputeHash(dataToHash);
-                hash = BitConverter.ToString(dataHashed).Replace("-", "");
-                hash = hash.ToLower();
+                {
+                    enc = new ASCIIEncoding();
+                    byte[] dataToHash = enc.GetBytes(raw);
+                    byte[] dataHashed = sha.ComputeHash(dataToHash);
+                    hash = BitConverter.ToString(dataHashed).Replace("-", "");
+                    hash = hash.ToLower();
+                }
             }
             catch (Exception)
             {
@@ -299,4 +300,3 @@ namespace Senparc.Weixin.Tencent
         }
     }
 }
-
