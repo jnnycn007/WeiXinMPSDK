@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>3.27.2</Version>
+    <Version>3.27.3</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin.WxOpen</AssemblyName>
     <RootNamespace>Senparc.Weixin.WxOpen</RootNamespace>
@@ -24,61 +24,45 @@
     <PackageIcon>icon.jpg</PackageIcon>
     <PackageReleaseNotes>
 			v0.1.0 添加基础解决方案，包括模板消息API
-
 			v0.1.0 添加基础库，已包含模板消息API
 			v0.2.0
 			1、添加WxOpenMessageHandler
 			2、添加SuccessResponseMessage类型响应信息
 			v0.3.0 根据MP的架构重构框架
-
 			v1.0.0
 			2017年1月9日，随小程序正式发布
-
 			v1.1.0 添加CreateWxQRCode重写方法，直接保存文件
 			添加SessionContainer，SessionHelper，EncryptHelper
-
 			v1.2.0 添加消息解密方法
 			fix bug：修改模板消息接口URL
-
 			v1.2.1 fix bug：修改模板消息接口URL
-
 			v1.3.0 支持.NET Core
-
 			v1.4.0 完成接口开放平台-代码管理及小程序码获取
-
 			v1.4.1
 			1、增加GetWxaCodeUnlimit接口
 			2、为Tencent命名空间添加Senparc.Weixin.WxOpen前缀
 			3、添加JsCode2JsonResult.unionid
-
 			v1.5.0
 			1、支持.NET Core 2.0
-
 			v1.6.0
 			1、添加获取用户手机号方法（同时提供了Demo）
-
 			v1.7.0-beta1 提供.NET 4.0支持
 			v1.7.1 发布正式版；修复WxAppApi.GetWxaCodeUnlimit()方法参数错误的问题
 			v1.7.2 支持Senparc.Weixin v4.18.5 可自定义API域名
 			v1.7.3 修复ModifyDomainApi.ModifyDomain()方法判断问题
 			v1.7.4 完善模板消息发送参数
-
 			v1.8.0 支持小程序
 			1、添加 WxAppApi.CheckSession() 接口，检验SessionKey
 			2、添加 DataCubeApi，包含所有“数据”接口
 			v1.8.1 新增附近的小程序API
 			v1.8.2 从 Open 中迁移模板消息过来，在 Senparc.Weixin.WxOpen.AdvancedAPIs.TemplateApi下
-
 			v1.9.0
 			1、停止对 .net core 1.1 生成的独立版本
 			2、待分配 WxAppApi.GetWxaCode()、GetWxaCodeUnlimit() 接口，添加获取小程序二维码时的颜色参数。
 			v1.9.1 提供 RegisterServices 进行快捷注册
 			v1.9.2 更新 WxAppApi.GetWxaCodeUnlimit() 参数引用
-
 			v1.10.0-rc1 支持 .NET Core 2.1.0-rc1-final
-
 			v1.10.5 发布支持 .net core 2.1 的正式版
-
 			v2.0.0 引入 Senparc.CO2NET，支持 Senparc.Weixin v5.0
 			V2.0.3 SessionBag 添加 UnionId 属性
 			v2.0.6.1 支持 CO2NET v0.1.6.1 解决 XXE 漏洞
@@ -94,7 +78,6 @@
 			v2.3.0 单独设立小程序客服接口（AdvancedAPIs.CustomApi），支持所有小程序客服消息类型
 			v2.4.0 添加校验文字及图片是否含有违法内容的接口
 			v2.4.1 fixbug：TemplateApi.LibraryGet() 方法修正 API 地址
-
 			v3.0.0 支持 NeuChar 标准
 			v3.0.1 支持 Senparc.Weixin v6.0.1
 			v3.1.0 支持 Senparc.NeuChar v0.0.5
@@ -197,6 +180,9 @@
 		[2026-06-17] v3.27.0 feat: 添加 iOS 会员订阅支持（wx.requestAppleSubscribeSign 签名辅助、签约结果及退款推送事件处理）#3297 / PR #3307 感谢 @Copilot
 		[2026-06-25] v3.27.1 fix: 修复 query_user_balance 接口 first_save_flag 字段类型错误 / Issue #3308 感谢 @zhangliang2008
 		[2026-06-26] v3.27.2 fix: 修复 微信小程序虚拟支付，IOS退款消息推送，属性错误！ / Issue #3310 / PR #3311 感谢 @lilinjian2001
+		[2026-07-18] v3.27.3 修复小程序凭据并发刷新与过期会话清理
+		1、同步完成 AccessToken 容器注册，并在分布式锁内二次检查凭据状态
+		2、通过容器统一入口清理过期会话，确保缓存状态同步
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

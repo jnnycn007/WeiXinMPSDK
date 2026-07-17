@@ -23,13 +23,16 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：加解密算法
     
     
-    创建标识：Senparc - 20150211
+    创建标识：Senparc - 20140920
     
     修改标识：Senparc - 20150303
     修改描述：整理接口
 
     修改标识：Senparc - 20191004
     修改描述：添加 EncryptRequestMsg() 方法
+
+    修改标识：Senparc - 20260718
+    修改描述：v6.23.2 规范 SHA1 哈希资源释放
 
 ----------------------------------------------------------------*/
 
@@ -274,21 +277,22 @@ namespace Senparc.Weixin.Tencent
                 raw += AL[i];
             }
 
-            SHA1 sha;
             ASCIIEncoding enc;
             string hash = "";
             try
             {
 #if NET462
-                sha = new SHA1CryptoServiceProvider();
+                using (var sha = new SHA1CryptoServiceProvider())
 #else
-                sha = SHA1.Create();
+                using (var sha = SHA1.Create())
 #endif
-                enc = new ASCIIEncoding();
-                byte[] dataToHash = enc.GetBytes(raw);
-                byte[] dataHashed = sha.ComputeHash(dataToHash);
-                hash = BitConverter.ToString(dataHashed).Replace("-", "");
-                hash = hash.ToLower();
+                {
+                    enc = new ASCIIEncoding();
+                    byte[] dataToHash = enc.GetBytes(raw);
+                    byte[] dataHashed = sha.ComputeHash(dataToHash);
+                    hash = BitConverter.ToString(dataHashed).Replace("-", "");
+                    hash = hash.ToLower();
+                }
             }
             catch (Exception)
             {
@@ -299,4 +303,3 @@ namespace Senparc.Weixin.Tencent
         }
     }
 }
-

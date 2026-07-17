@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>16.24.3</Version>
+    <Version>16.24.4</Version>
     <AssemblyName>Senparc.Weixin.MP</AssemblyName>
     <RootNamespace>Senparc.Weixin.MP</RootNamespace>
     <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
@@ -27,99 +27,56 @@
 			2、修复MessageAgent状态记录的一个bug
 			3、修复二维码事件bug
 			4、24小时推送限制改为48小时
-
 			v4.10 添加媒体文件上传、下载接口
-
 			v4.11 添加AccessTokenContainer管理容器
-
 			v.4.12 添加更多AccessTokenContainer下的方法
-
 			v4.13.0 添加高级接口中的语种选择
-
 			v5.0.0 添加图片、语音、视频返回类型
-
 			v5.1 优化图片等消息的响应，并添加图片等新回复格式的DEMO
-
 			v5.2 添加MessageAgent.CheckUrlAndToken方法
-
 			v5.4.0 souidea全面升级到weiweihi
-
 			v5.5.0 添加View事件响应；添加单个列队自定义过期时间
-
 			v5.6.0 添加OnTextOrEventRequest事件
-
 			v5.7.0 添加百度地图帮助类
-
 			v5.8.0 添加模板消息接口、群发接口
-
 			v5.9.0 添加多客服接口
-
 			v5.10.0 添加对外请求超时设置
-
 			v6.1.0 添加多客服聊天记录查询
-
 			v6.2.0 优化RequestMessageEvent相关结构；添加消息发送测试工具
-
 			v7.0.10 添加微信支付相关接口、优化二维码接口
-
 			v7.0.14 完善微信支付接口，添加AccessTokenHandlerWapper
-
 			v7.0.20 添加MessageHandlerException，修正部分bug
-
 			v7.1.0 正式发布微信支付、微小店接口；完善模板消息响应事件。
-
 			v8.0.0 分离基础方法到Senparc.Weixin
-
 			v9.3.0 稳定版
-
 			v9.4.2 修改完善了群发的方法
 			v9.4.3 支持新增的6种菜单的事件推送
-
 			v9.5.0
 			添加消息去重
-
 			v9.5.3
 			纠正群发和模板推送 接收MsgID出错问题
-
 			v9.5.7  新增获取Js-Api凭证接口（ticket）以及生成签名的方法
-
 			v9.6.1 添加AccessToken过期获取的Lock、新增数据统计接口
-
 			v9.6.4 获取JsApiTicket方法完善
-
 			v10.0.0 重构代码，加入AppStore
-
 			v11.0.1 框架升级到.NET 4.0
-
 			v11.2.0 添加AppStore相关接口
-
 			v11.2.24 添加针对加密信息的官方iphone换行bug处理
-
 			v11.3.0 分离Open，优化素材相关方法
-
 			v11.3.2 摇一摇周边试用版
-
 			v11.3.6 群发消息接口修改  试用版
-
 			v12.3.1 添加了AccessToken（非预期的）过期自动处理机制，大部分高级接口可以忽略对AccessToken的获取和管理。稳定版。
-
 			v12.4.2 重新整理（简化）API的命名空间
-
 			v13 支持.NET4.5，添加异步请求方法
-
 			v13.2.1 完善异步请求方法，添加JSON生成过程中null对象的过滤机制
-
 			v13.3.0 整合JsAPITicketContainer到AccessTokenContainer
-
 			v13.4 重构升级
-
 			v13.5.2 添加个性化菜单
 			v13.5.6
 			完善红包发送及查询接口
 			修复Wifi API的bug
 			完善Web代理（Proxy）功能
 			完善微小店实体类型
-
 			v13.6.3
 			更新Container架构
 			分离AccessTokenContainer和JsApiTicketContainer
@@ -130,14 +87,11 @@
 			更新API
 			优化Container，全面支持分布式缓存
 			添加客服消息接口
-
 			v13.6.10
 			提供Container缓存立即生效的解决方案
-
 			v13.7.0-beta1
 			优化缓存方案
 			添加短链接接口
-
 			v13.7.9
 			1、BatchGetUserInfoJson类重命名为BatchGetUserInfoJsonResult
 			2、重构部分MessageHandler代码
@@ -146,7 +100,6 @@
 			5、完善摇一摇功能
 			6、完善wifi功能
 			7、添加用户“标签”相关接口
-
 			v13.8.2
 			2016-05-24
 			更新及新增接口：
@@ -157,44 +110,33 @@
 			新增接口模块：
 			ScanApi
 			v13.8.4 尝试解决OAuth：40029-invalid code 错误
-
 			v14.1.0
 			为接口添加异步方法
 			完善接口
-
 			v14.2.2
 			支持.NET ore
 			优化EntityHelper及接口
-
 			v14.2.3
 			使用ApiUtility.GetExpireTime()方法处理过期
-
 			v14.3.3
 			重构缓存策略
 			重构Container
 			整合分布锁
-
 			v14.3.4
 			添加TryReRegister()方法，处理分布式缓存重启（丢失）的情况
-
 			v14.3.6
 			重构缓存键命名空间规则，添加Config.DefaultCacheNamespace
-
 			v14.3.7
 			修改Create方法（及对应异步方法），匹配最新的官方文档，删除CreateByStr方法（及对应异步方法）；
 			增加QrCode_ActionName枚举
-
 			v14.3.100
 			第100个Nuget公开发布的Senparc.Weixin.MP.dll版本。
 			添加获取API：获取微信服务器的ip段。
-
 			v14.3.101
 			修改TenPayUtil.BuildRandomStr()方法.
 			.NET Core版本：修改编码；删除第一版微信支付代码。（TenPayLib）
-
 			v14.3.104
 			重构缓存，添加ObjectCacheStrategy
-
 			v14.3.105 优化红包，添加裂变红包
 			v14.3.106
 			删除Senparc.Weixin.MP.Helpers.FileHelper，合并到Senparc.Weixin.Helpers.FileHelper类中（开发时只需要注意修改命名空间）
@@ -258,22 +200,18 @@
 			v14.3.142 RequestUtility中的所有请求证书由X509Certificate类型改为X509Certificate2
 			SendResult文件添加了msg_data_id字段，此字段用于统计分析
 			v14.3.143 修复上一版本造成的菜单获取错误问题
-
 			v14.4.5 完善微信支付退款申请接口
 			v14.4.6 修复企业付款接口无法指定证书的问题（TenpayV3.Transfers）
 			v14.4.7 iBeacon设备接口GroupGetAdddevice()方法更新
-
 			v14.4.5 完善微信支付退款申请接口
 			v14.4.6 修复企业付款接口无法指定证书的问题（TenpayV3.Transfers）
 			v14.4.7 iBeacon设备接口GroupGetAdddevice()方法更新
 			v14.4.8
 			1、完善TenPayLibV3.GetNoncestr()方法；
 			2、优化TenPayLibV3.BuildRandomStr()方法
-
 			v14.4.9
 			1、修改CardAPI的卡信息更新设置
 			2、修改TenPayUtil.GetNoncestr()方法，将编码由GBK改为UTF8
-
 			v14.4.10
 			1、CardApi.CardBatchGet()方法增加statusList参数
 			2、修改Card_CashData属性类型（int）
@@ -282,7 +220,6 @@
 			2、修复 CustomServiceApi.GetMsgList() 方法时间戳问题
 			v14.4.13 修复二级菜单小程序无法设置的问题
 			v14.4.14 修改 JSSDKHelper.GetcardExtSign()和CreateNonekeySha1() 方法，使用 ASCII 字典排序
-
 			v14.5.0
 			1、AccessTokenResult 加入 IAccessTokenResult 接口
 			2、启用新版本的ApiHandlerWapper
@@ -292,7 +229,6 @@
 			1、添加 QrCode_ActionName.QR_STR_SCENE
 			2、解决了QrCode_ActionName.QR_STR_SCENE下临时二维码有效时间expire_seconds不生效的问题
 			v14.5.4 添加“一次性订阅消息”接口
-
 			v14.5.5
 			1、修改Container中的锁及异步调用方法
 			2、支持H5支付（同时已发布Demo）
@@ -303,7 +239,6 @@
 			7、查询红包接口（SearchRedPack）添加refund_amount和remark两个参数获取
 			8、增加“获取商品二维码”接口（ScanApi.GetQrCode()），同时提供配套异步方法
 			9、更新CardApi.CardBatchGet()方法的statusList参数传值
-
 			v14.6.0
 			1、新增 刷卡支付 撤销订单接口
 			2、支持.NET Core 2.0
@@ -326,7 +261,6 @@
 			v14.6.11 常规优化
 			v14.7.0 TenPayV3的接口添加对 UseSandBoxPay 的判断，可以自动使用沙箱
 			v14.7.1（.NET Core）恢复从.NET Framework中移植的RequestUtility.SetHttpProxy()和RemoveHttpProxy()方法
-
 			v14.8.0-beta1 重新支持.NET 3.5/4.0
 			v14.8.0-beta2 优化多版本支持代码
 			v14.8.1 修复几处GetNoncestr还在使用GBK编码
@@ -348,10 +282,8 @@
 			3、AnalysisApi 接口中的 GetUserReadItem 和 GetUserReadHourItem 添加 user_source 属性（用户渠道来源）
 			v14.8.14 CardApi.UpdateUser() 方法参数中重新加添 add_bonus 和 add_balance 两个参数
 			v14.8.15 添加“评论数据管理”接口（共8个）
-
 			v14.9.0 支持异步 MessageHandler
 			v14.9.1 完善AnalysisApi.GetArticleTotal()返回数据字段
-
 			v14.10.0 停止对 .net core 1.1 生成的独立版本
 			v14.10.1 添加RegisterService提供快捷注册方式
 			v14.10.2 微信支付统一下单接口TenPayV3UnifiedorderRequestData数据添加“场景信息”字段（sceneInfo）
@@ -382,17 +314,13 @@
 			v14.12.2 修正 MediaApi.GetForeverMedia() 方法永久视频的文件下载过程。
 			v14.12.3 1、添加黑名单管理
 			2、分离永久视频素材获取接口
-
 			v14.13.0-rc1 支持 .NET Core 2.1.0-rc1-final
-
 			v14.14.0-rc1
 			1、支持 Senparc.Weixin v4.22.0-rc1
 			2、CardAPI 升级到新的 Newtonsoft.Json 的序列化参数
-
 			v14.14.0
 			1、发布支持 .net core 2.1 的正式版
 			2、获取用户基本信息（包括UnionID机制）API 的 ResultJson 模型增加 subscribe_scene（用户关注的渠道来源）字段。
-
 			v15.0.0 引入 Senparc.CO2NET，支持 Senparc.Weixin v5.0
 			v15.0.2-preview1 支持 CO2NET v0.1.2
 			v15.0.3.1 解决.NetCore环境微信支付回调时ResponseHandler传入HttpContext实例后解析xml提示找不到根节点的错误
@@ -408,7 +336,6 @@
 			1、优化接口
 			2、支持 Senparc.Weixin v5.1.4
 			v15.1.4 修复 GetForeverMedia() 接口 bug
-
 			v15.2.0
 			1、SenparcWeixinSetting 添加 TenPayV3_WxOpenTenpayNotify 属性，用于设置小程序支付回调地址
 			2、支持 Senparc.Weixin v5.1.6
@@ -417,7 +344,6 @@
 			v15.2.3 支持 CO2NET v0.2.8
 			v15.2.4 微信支付 RequestHandler 增加 HMAC-SHA256 加密方式
 			v15.3.0 分离微信支付到 Senparc.Weixin.TenPay.dll
-
 			v16.0.0 支持 NeuChar 标准
 			v16.0.1 支持 Senparc.Weixin v6.0.1
 			v16.1.0 支持 Senparc.NeuChar v0.0.5
@@ -499,11 +425,9 @@
 		v16.14.2
 		1、Register 提供对 ApiHandlerWapper 委托的设置方法
 		2、添加用户提交抬头后，商户会收到用户提交的事件（submit_invoice_title）
-
 		v16.15.0
 		1、接入微信支付 V3
 		2、SEnparcWeixinSetting 添加 record 能力
-
 		v16.15.500 用户信息调整：不再返回用户性别及地区信息
 		v16.17.1 完善永久素材上传接口
 		v16.17.2 优化永久素材上传接口，提供素材类型枚举：UploadForeverMediaType
@@ -527,6 +451,9 @@
 		[2024-08-06] v16.21.4 更新基础库，包括 Senparc.CO2NET 相关库、Senparc.AI
 		[2026-03-20] v16.24.2 修复 GetStableAccessToken 方法中 force_refresh 参数硬编码问题 / Issue #3272
 		[2026-06-25] v16.24.3 feat: 新增 GetForeverMediaWithContentType() 接口，支持获取永久素材响应 Content-Type
+		[2026-07-18] v16.24.4 修复公众号凭据容器并发刷新与同步注册竞态
+		1、同步注册在返回前完成，避免立即读取时尚未注册
+		2、在分布式锁内重新读取 AccessToken、JS-SDK、OAuth 和卡券票据状态，避免重复刷新
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

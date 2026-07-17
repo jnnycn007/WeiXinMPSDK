@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>2.19.1</Version>
+    <Version>2.19.2</Version>
     <AssemblyName>Senparc.Weixin.Cache.Memcached</AssemblyName>
     <RootNamespace>Senparc.Weixin.Cache.Memcached</RootNamespace>
     <Description>
@@ -25,38 +25,23 @@
 			v0.0.1
 			提供分布式缓存支持
 			.NET 4.0版本暂时未提供
-
 			v0.0.2
 			重构缓存策略，提供分布锁
-
 			v0.0.3 优化方法和接口
-
 			v0.0.4 优化方法和接口
-
 			v0.0.5  添加ServerList配制方法
-
 			v0.1.0
 			重构缓存，添加ObjectCacheStrategy
-
 			v0.2.0 重构分布式锁
-
 			v0.3.0 Memcached同步锁改为使用StoreMode.Add方法
-
 			v1.0.0 支持 .NET Core
-
 			v1.1.0 支持 .NET Core 2.0
-
 			v1.2.0 注释掉无效代码
-
 			v1.3.0 .net core下，MemcachedObjectCacheStrategy.GetMemcachedClientConfiguration()方法添加注入参数
-
 			v1.4.0 停止对 .net core 1.1 生成的独立版本
 			v1.4.1 提供 RegisterServices 进行快捷注册
-
 			v1.5.0-rc1 支持 .NET Core 2.1.0-rc1-final
-
 			v1.5.5 发布支持 .net core 2.1 的正式版
-
 			v2.0.0 引入 Senparc.CO2NET，支持 Senparc.Weixin v5.0
 			v2.0.6.1 支持 CO2NET v0.1.6.1
 			v2.0.9 支持 CO2NET v0.1.9
@@ -74,6 +59,7 @@
 			v2.5.0 使用最新版本 Senparc.Weixin，支持 .NET Core 3.0
 			v2.5.101 提供 .Net Core 3.0 独立版本
 			v2.7.102 RegisterDomainCache() 方法重命名为 ActivityDomainCache()
+			[2026-07-18] v2.19.2 Dependency update from Senparc.Weixin to 6.23.2
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
     <!--<Product>Senparc.Weixin.Cache.Memcached.dll</Product>-->

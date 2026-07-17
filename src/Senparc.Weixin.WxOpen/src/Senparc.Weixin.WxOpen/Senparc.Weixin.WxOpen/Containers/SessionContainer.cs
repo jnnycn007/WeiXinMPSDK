@@ -25,8 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件名：SessionContainer.cs
     文件功能描述：小程序 Session 容器
 
-
-    创建标识：Senparc - 20171008
+    创建标识：Senparc - 20170130
 
     修改标识：Senparc - 20180614
     修改描述：CO2NET v0.1.0 ContainerBag 取消属性变动通知机制，使用手动更新缓存
@@ -44,7 +43,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20190712
     修改描述：v3.5.0 SessionContainer 添加 AddDecodedUserInfo() 方法，SessionBag 提供 DecodedUserInfo 属性
-    
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.27.3 通过容器统一入口移除过期会话缓存
+
 ----------------------------------------------------------------*/
 
 
@@ -129,7 +131,7 @@ namespace Senparc.Weixin.WxOpen.Containers
             if (bag.ExpireTime < SystemTime.Now)
             {
                 //已经过期
-                Cache.RemoveFromCache(key);
+                RemoveFromCache(key);
                 return null;
             }
 
@@ -199,7 +201,7 @@ namespace Senparc.Weixin.WxOpen.Containers
             if (bag.ExpireTime < SystemTime.Now)
             {
                 //已经过期
-                await Cache.RemoveFromCacheAsync(key).ConfigureAwait(false);
+                await RemoveFromCacheAsync(key).ConfigureAwait(false);
                 return null;
             }
 
@@ -253,4 +255,3 @@ namespace Senparc.Weixin.WxOpen.Containers
         #endregion
     }
 }
-

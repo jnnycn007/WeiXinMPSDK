@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：通用接口JsApiTicket容器，用于自动管理JsApiTicket，如果过期会重新获取
 
 
-    创建标识：Senparc - 20160206
+    创建标识：Senparc - 20150114
 
     修改标识：Senparc - 20160206
     修改描述：将public object Lock更改为internal object Lock
@@ -44,7 +44,6 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
  
     修改标识：Senparc - 20160804
     修改描述：v14.2.4 增加TryGetJsApiTicketAsync，GetJsApiTicketAsync，GetJsApiTicketResultAsync的异步方法
-
 
     修改标识：Senparc - 20160808
     修改描述：v14.3.0 删除 ItemCollection 属性，直接使用ContainerBag加入到缓存
@@ -75,6 +74,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20190826
     修改描述：v16.7.16 优化 Register() 方法
+
+    修改标识：Senparc - 20260718
+    修改描述：v16.24.4 修复同步注册竞态，并在分布式锁内重新读取 JS-SDK 票据状态
 
 ----------------------------------------------------------------*/
 
@@ -135,20 +137,8 @@ namespace Senparc.Weixin.MP.Containers
         [Obsolete("请使用 RegisterAsync() 方法")]
         public static void Register(string appId, string appSecret, string name = null)
         {
-            //使用后台任务执行注册，避免阻塞主线程导致性能问题
-            //注册过程本身不会立即获取Ticket，只是设置注册信息
-            _ = Task.Run(async () => 
-            {
-                try
-                {
-                    await RegisterAsync(appId, appSecret, name).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    //记录异常但不阻塞调用方
-                    Senparc.CO2NET.Trace.SenparcTrace.SendCustomLog("MP.JsApiTicketContainer.Register 异步注册出错", ex.Message);
-                }
-            });
+            //同步入口必须在返回前完成注册，否则紧接着读取容器时会出现未注册竞态。
+            RegisterAsync(appId, appSecret, name).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
 
@@ -195,6 +185,7 @@ namespace Senparc.Weixin.MP.Containers
             var jsApiTicketBag = TryGetItem(appId);
             using (Cache.BeginCacheLock(LockResourceName, appId))//同步锁
             {
+                jsApiTicketBag = TryGetItem(appId);//获锁后重新读取并二次检查过期状态
                 if (getNewTicket || jsApiTicketBag.JsApiTicketExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -294,6 +285,7 @@ namespace Senparc.Weixin.MP.Containers
             var jsApiTicketBag = await TryGetItemAsync(appId).ConfigureAwait(false);
             using (await Cache.BeginCacheLockAsync(LockResourceName, appId).ConfigureAwait(false))//同步锁
             {
+                jsApiTicketBag = await TryGetItemAsync(appId).ConfigureAwait(false);//获锁后重新读取并二次检查过期状态
                 if (getNewTicket || jsApiTicketBag.JsApiTicketExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -311,4 +303,3 @@ namespace Senparc.Weixin.MP.Containers
         #endregion
     }
 }
-

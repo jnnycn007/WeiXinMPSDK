@@ -21,7 +21,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 /*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
 
-    文件名：OAuthContainer.cs
+    文件名：OAuthAccessTokenContainer.cs
     文件功能描述：用户OAuth容器，用于自动管理OAuth的AccessToken，如果过期会重新获取
 
 
@@ -65,6 +65,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20191014
     修改描述：v16.9.102 正式启用 OAuthAccessTokenContainer
+
+    修改标识：Senparc - 20260718
+    修改描述：v16.24.4 修复 OAuth 同步注册参数与锁内令牌二次检查
 
 ----------------------------------------------------------------*/
 
@@ -134,20 +137,8 @@ namespace Senparc.Weixin.MP.Containers
         [Obsolete("请使用 RegisterAsync() 方法")]
         public static void Register(string appId, string appSecret, string code, string name = null)
         {
-            //使用后台任务执行注册，避免阻塞主线程导致性能问题
-            //注册过程本身不会立即获取Ticket，只是设置注册信息
-            _ = Task.Run(async () => 
-            {
-                try
-                {
-                    await RegisterAsync(appId, appSecret, name).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    //记录异常但不阻塞调用方
-                    Senparc.CO2NET.Trace.SenparcTrace.SendCustomLog("MP.OAuthAccessTokenContainer.Register 异步注册出错", ex.Message);
-                }
-            });
+            //同步入口必须在返回前完成注册，否则紧接着读取容器时会出现未注册竞态。
+            RegisterAsync(appId, appSecret, code, name).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -239,6 +230,7 @@ namespace Senparc.Weixin.MP.Containers
             var oAuthAccessTokenBag = TryGetItem(key);
             using (Cache.BeginCacheLock(LockResourceName, key))//同步锁
             {
+                oAuthAccessTokenBag = TryGetItem(key);//获锁后重新读取并二次检查过期状态
                 if (getNewToken || oAuthAccessTokenBag.OAuthAccessTokenExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -308,6 +300,7 @@ namespace Senparc.Weixin.MP.Containers
             var oAuthAccessTokenBag = await TryGetItemAsync(key).ConfigureAwait(false);
             using (await Cache.BeginCacheLockAsync(LockResourceName, key).ConfigureAwait(false))//同步锁
             {
+                oAuthAccessTokenBag = await TryGetItemAsync(key).ConfigureAwait(false);//获锁后重新读取并二次检查过期状态
                 if (getNewToken || oAuthAccessTokenBag.OAuthAccessTokenExpireTime <= SystemTime.Now)
                 {
                     //已过期，重新获取
@@ -326,4 +319,3 @@ namespace Senparc.Weixin.MP.Containers
         #endregion
     }
 }
-

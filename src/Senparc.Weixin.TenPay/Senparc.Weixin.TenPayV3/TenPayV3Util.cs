@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：微信支付V3配置文件
     
     
-    创建标识：Senparc - 20150211
+    创建标识：Senparc - 20140807
     
     修改标识：Senparc - 20150303
     修改描述：整理接口
@@ -46,11 +46,15 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20230628
     修改描述：v0.7.5 TenPayV3Util.GetNoncestr() 弃用 MD5 加密方法
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 使用密码学安全随机数并规范哈希资源释放
+
 ----------------------------------------------------------------*/
 
 using System;
 using System.Text;
 using System.Net;
+using System.Security.Cryptography;
 using Senparc.Weixin.Helpers;
 using Senparc.CO2NET.Helpers;
 
@@ -155,30 +159,29 @@ namespace Senparc.Weixin.TenPayV3
         /// <returns></returns>
         public static string BuildRandomStr(int length)
         {
-            int num;
-
-            lock (random)
+            if (length < 0)
             {
-                num = random.Next();
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
 
-            string str = num.ToString();
-
-            if (str.Length > length)
+            var result = new StringBuilder(length);
+            var randomByte = new byte[1];
+            const int UnbiasedUpperBound = 250;//最大的不大于 256 且可被 10 整除的数
+            using (var randomNumberGenerator = RandomNumberGenerator.Create())
             {
-                str = str.Substring(0, length);
-            }
-            else if (str.Length < length)
-            {
-                int n = length - str.Length;
-                while (n > 0)
+                for (var i = 0; i < length; i++)
                 {
-                    str = str.Insert(0, "0");
-                    n--;
+                    do
+                    {
+                        randomNumberGenerator.GetBytes(randomByte);
+                    }
+                    while (randomByte[0] >= UnbiasedUpperBound);
+
+                    result.Append((char)('0' + randomByte[0] % 10));
                 }
             }
 
-            return str;
+            return result.ToString();
         }
 
         /// <summary>
@@ -218,4 +221,3 @@ namespace Senparc.Weixin.TenPayV3
         }
     }
 }
-
