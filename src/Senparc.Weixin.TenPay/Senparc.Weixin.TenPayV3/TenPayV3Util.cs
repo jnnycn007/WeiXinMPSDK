@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：微信支付V3配置文件
     
     
-    创建标识：Senparc - 20150211
+    创建标识：Senparc - 20140807
     
     修改标识：Senparc - 20150303
     修改描述：整理接口
@@ -45,6 +45,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20230628
     修改描述：v0.7.5 TenPayV3Util.GetNoncestr() 弃用 MD5 加密方法
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 使用密码学安全随机数并规范哈希资源释放
 
 ----------------------------------------------------------------*/
 

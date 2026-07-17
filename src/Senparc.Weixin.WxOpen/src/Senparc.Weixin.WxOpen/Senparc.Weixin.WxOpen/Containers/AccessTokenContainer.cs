@@ -23,13 +23,18 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
   
     文件名：AccessTokenContainer.cs
     文件功能描述：小程序的通用接口 AccessToken 容器，用于自动管理 AccessToken，如果过期会重新获取
-    
-    
+
+
+    创建标识：Senparc - 20140128
+
     修改标识：gokeiyou - 20201230
     修改描述：新建 WxOpen 专属的 AccessTokenContainer
 
     修改标识：Senparc - 20220916
     修改描述：v3.15.7.1 RegisterAsync() 方法添加 ConfigureAwait(false) 标记
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.27.3 修复同步注册竞态，并在分布式锁内重新读取 AccessToken 状态
 
 ----------------------------------------------------------------*/
 

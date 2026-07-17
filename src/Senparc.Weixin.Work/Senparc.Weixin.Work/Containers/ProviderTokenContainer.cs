@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：通用接口ProviderToken容器，用于自动管理ProviderToken，如果过期会重新获取
 
 
-    创建标识：Senparc - 20150313
+    创建标识：Senparc - 20140128
 
     修改标识：Senparc - 20150313
     修改描述：整理接口
@@ -77,6 +77,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20190826
     修改描述：v3.5.13 优化 Register() 方法
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.31.1 改用分布式锁并在锁内重新读取服务商令牌状态
+
 ----------------------------------------------------------------*/
 
 using System;

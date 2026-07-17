@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：微信支付V3信息集合，Key为商户号（MchId）
 
 
-    创建标识：Senparc - 20150211
+    创建标识：Senparc - 20140810
 
     修改标识：Senparc - 20150303
     修改描述：整理接口
@@ -40,6 +40,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改描述：v1.4.0 .NET Core 添加多证书注册功能
 
     TODO：升级为Container
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 为商户配置集合增加线程安全访问
+
 ----------------------------------------------------------------*/
 
 using System;

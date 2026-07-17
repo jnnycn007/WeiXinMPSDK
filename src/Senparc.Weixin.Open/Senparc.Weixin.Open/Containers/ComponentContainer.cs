@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：通用接口ComponentAccessToken容器，用于自动管理ComponentAccessToken，如果过期会重新获取
 
 
-    创建标识：Senparc - 20150430
+    创建标识：Senparc - 20151004
 
     修改标识：Senparc - 20151004
     修改描述：v1.4.1 改名为ComponentContainer.cs，合并多个ComponentApp相关容器
@@ -84,6 +84,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     
     修改标识：Senparc - 20190826
     修改描述：v4.5.10 优化 Register() 方法
+
+    修改标识：Senparc - 20260718
+    修改描述：v4.24.2 修复组件同步注册并为票据刷新增加分布式锁与二次检查
 
 ----------------------------------------------------------------*/
 

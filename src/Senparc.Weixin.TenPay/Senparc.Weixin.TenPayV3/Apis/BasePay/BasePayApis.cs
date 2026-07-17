@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：新微信支付V3基础接口
     
     
-    创建标识：Senparc - 20210804
+    创建标识：Senparc - 20180904
 
     修改标识：Senparc - 20210811
     修改描述：完成JsApi支付签名方法
@@ -53,6 +53,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：mojinxun - 20250618
     修改描述：v2.1.0 兼容微信平台证书和微信支付公钥 / PR #3144
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 释放账单下载响应，避免连接资源泄漏
+
 ----------------------------------------------------------------*/
 
 using Senparc.CO2NET.Helpers;

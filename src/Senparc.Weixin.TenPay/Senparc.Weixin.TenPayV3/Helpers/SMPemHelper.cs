@@ -1,4 +1,18 @@
-﻿using Org.BouncyCastle.Asn1.X9;
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2026 Senparc
+
+    文件名：SMPemHelper.cs
+    文件功能描述：微信支付国密证书密钥参数加载辅助类
+
+
+    创建标识：Senparc - 20240720
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 及时释放国密证书资源
+
+----------------------------------------------------------------*/
+
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;

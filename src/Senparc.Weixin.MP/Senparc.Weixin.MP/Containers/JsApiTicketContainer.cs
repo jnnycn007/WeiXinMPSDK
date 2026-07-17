@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：通用接口JsApiTicket容器，用于自动管理JsApiTicket，如果过期会重新获取
 
 
-    创建标识：Senparc - 20160206
+    创建标识：Senparc - 20150114
 
     修改标识：Senparc - 20160206
     修改描述：将public object Lock更改为internal object Lock
@@ -44,7 +44,6 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
  
     修改标识：Senparc - 20160804
     修改描述：v14.2.4 增加TryGetJsApiTicketAsync，GetJsApiTicketAsync，GetJsApiTicketResultAsync的异步方法
-
 
     修改标识：Senparc - 20160808
     修改描述：v14.3.0 删除 ItemCollection 属性，直接使用ContainerBag加入到缓存
@@ -75,6 +74,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20190826
     修改描述：v16.7.16 优化 Register() 方法
+
+    修改标识：Senparc - 20260718
+    修改描述：v16.24.4 修复同步注册竞态，并在分布式锁内重新读取 JS-SDK 票据状态
 
 ----------------------------------------------------------------*/
 

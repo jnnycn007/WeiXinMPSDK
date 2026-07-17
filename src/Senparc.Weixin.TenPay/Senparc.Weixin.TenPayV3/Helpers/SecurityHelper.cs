@@ -29,6 +29,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20241020
     修改描述：v1.6.5 修改 SM 证书判断逻辑，向下兼容未升级 appsettings.json 的系统 #3084 感谢 @WXJDLM
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 完善 RSA 与证书资源释放及空公钥校验
+
 ----------------------------------------------------------------*/
 
 

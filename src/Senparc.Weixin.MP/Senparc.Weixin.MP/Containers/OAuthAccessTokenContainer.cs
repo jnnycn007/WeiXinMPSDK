@@ -21,7 +21,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 /*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
 
-    文件名：OAuthContainer.cs
+    文件名：OAuthAccessTokenContainer.cs
     文件功能描述：用户OAuth容器，用于自动管理OAuth的AccessToken，如果过期会重新获取
 
 
@@ -65,6 +65,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20191014
     修改描述：v16.9.102 正式启用 OAuthAccessTokenContainer
+
+    修改标识：Senparc - 20260718
+    修改描述：v16.24.4 修复 OAuth 同步注册参数与锁内令牌二次检查
 
 ----------------------------------------------------------------*/
 

@@ -39,6 +39,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：ByteXiong - 20260118
     修改描述：v2.3.3 fix: TenPaySignHelper.GetJsApiUiPackage 验签appId 传入无效,导致调起支付验签失败 #3244 感谢 @ByteXiong
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 完善签名验证相关加密资源释放
+
 ----------------------------------------------------------------*/
 
 

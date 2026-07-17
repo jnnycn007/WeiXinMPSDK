@@ -35,7 +35,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     
     修改标识：mojinxun - 20250618
     修改描述：v2.1.0 兼容微信平台证书和微信支付公钥 / PR #3144
-    
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 复用 HttpClient 并按请求隔离超时与资源释放
+
 ----------------------------------------------------------------*/
 
 using Org.BouncyCastle.Crypto.Parameters;

@@ -25,12 +25,14 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：TenPayHttpClient
     
     
-    创建标识：Senparc - 20210920
+    创建标识：Senparc - 20220224
 
     修改标识：Senparc - 20220511
     修改描述：v0.6.2.2 TenPayHttpClient 赋值问题
 
-    
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 隔离请求头与超时控制并完善响应资源释放
+
 ----------------------------------------------------------------*/
 
 using Client.TenPayHttpClient.Signer;

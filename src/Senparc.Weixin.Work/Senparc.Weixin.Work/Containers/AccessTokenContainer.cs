@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：通用接口AccessToken容器，用于自动管理AccessToken，如果过期会重新获取
 
 
-    创建标识：Senparc - 20150313
+    创建标识：Senparc - 20140128
 
     修改标识：Senparc - 20150313
     修改描述：整理接口
@@ -90,6 +90,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20220916
     修改描述：v3.15.8.1 RegisterAsync() 方法添加 ConfigureAwait(false) 标记
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.31.1 修复同步注册竞态，并在分布式锁内重新读取 AccessToken 状态
 
 ----------------------------------------------------------------*/
 

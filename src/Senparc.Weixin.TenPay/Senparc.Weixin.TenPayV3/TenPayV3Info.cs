@@ -22,9 +22,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     Copyright (C) 2026 Senparc
  
     文件名：TenPayV3Info.cs
+    文件功能描述：微信支付 V3 商户配置、API 实例与平台公钥管理
 
     
-    创建标识：Senparc - 20210804
+    创建标识：Senparc - 20140810
 
     修改标识：Senparc - 20210822
     修改描述：修改BasePayApis 此类型不再为静态类 使用ISenparcWeixinSettingForTenpayV3初始化实例
@@ -34,6 +35,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20260118
     修改描述：V3 中新增加 CertType 属性
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 增加平台公钥缓存过期与未命中并发刷新机制
 
 ----------------------------------------------------------------*/
 

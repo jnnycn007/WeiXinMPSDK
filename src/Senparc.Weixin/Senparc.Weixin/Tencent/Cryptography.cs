@@ -23,13 +23,16 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：加解密算法
     
     
-    创建标识：Senparc - 20150211
+    创建标识：Senparc - 20140920
     
     修改标识：Senparc - 20150303
     修改描述：整理接口
 
     修改标识：Senparc - 20170522
     修改描述：v6.3.2 修改TenPayUtil.GetNoncestr()方法，将编码由GBK改为UTF8
+
+    修改标识：Senparc - 20260718
+    修改描述：v6.23.2 使用密码学安全随机数并规范 AES 资源释放
 
 ----------------------------------------------------------------*/
 

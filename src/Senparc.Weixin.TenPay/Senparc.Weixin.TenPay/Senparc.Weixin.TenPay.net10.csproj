@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>1.18.1</Version>
+    <Version>1.18.2</Version>
     <AssemblyName>Senparc.Weixin.TenPay</AssemblyName>
     <RootNamespace>Senparc.Weixin.TenPay</RootNamespace>
     <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
@@ -25,7 +25,6 @@
 			v0.1.0 从 Senparc.Weixin.MP 和 Senparc.Weixin.Work 抽象并分离独立的微信支付模块
 			v0.2.0 支持 Senparc.Weixin v6.0.1
 			v0.2.1 优化支付模板Html5Order方法
-
 			v1.0.0 Senparc.Weixin 6.1.4
 			v1.0.1 优化 TenPayV3Result.GetXmlValues() 方法
 			v1.1.0 完善子账号 SubMchId 相关参数
@@ -58,6 +57,7 @@
 			v1.11.4 使用 Senparc.Weixin.Config.TenPayV3Host 提供可配置的 API 域名
 			v1.12.8 TenPayUtil.GetNoncestr() 弃用 MD5 加密方法
             [2024-08-06] v1.14.4 更新基础库，包括 Senparc.CO2NET 相关库、Senparc.AI
+            [2026-07-18] v1.18.2 Dependency update from Senparc.Weixin to 6.23.2
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

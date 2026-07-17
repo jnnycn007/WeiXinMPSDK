@@ -21,7 +21,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 /*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
 
-    文件名：WeixinContainer.cs
+    文件名：BaseContainer.cs
     文件功能描述：微信容器（如Ticket、AccessToken）
 
 
@@ -59,6 +59,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20210127
     修改描述：RegisterFuncCollection 改为 ConcurrentDictionary 类型
+
+    修改标识：Senparc - 20260718
+    修改描述：v6.23.2 修复缓存策略热切换、空值移除和并发重注册问题
 
 ----------------------------------------------------------------*/
 

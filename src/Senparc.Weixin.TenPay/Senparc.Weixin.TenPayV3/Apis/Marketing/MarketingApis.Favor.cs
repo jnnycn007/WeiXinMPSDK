@@ -25,8 +25,11 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：微信支付V3营销工具接口
     
     
-    创建标识：Senparc - 20210821
-    
+    创建标识：Senparc - 20210920
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 释放营销账单下载响应，避免连接资源泄漏
+
 ----------------------------------------------------------------*/
 
 using Senparc.CO2NET.Helpers;

@@ -1,4 +1,18 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2026 Senparc
+
+    文件名：SHA256WithRSAVerifier.cs
+    文件功能描述：微信支付 SHA256WithRSA 签名验证器
+
+
+    创建标识：Senparc - 20220224
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 完善 RSA 签名验证资源释放与空公钥校验
+
+----------------------------------------------------------------*/
+
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Senparc.Weixin.Helpers;
 using Senparc.Weixin.TenPayV3.Helpers;
