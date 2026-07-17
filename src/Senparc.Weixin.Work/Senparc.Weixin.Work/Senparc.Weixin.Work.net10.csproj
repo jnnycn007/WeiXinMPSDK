@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-		<Version>3.31.0</Version>
+		<Version>3.31.1</Version>
 		<LangVersion>10.0</LangVersion>
 		<AssemblyName>Senparc.Weixin.Work</AssemblyName>
 		<RootNamespace>Senparc.Weixin.Work</RootNamespace>
@@ -24,25 +24,20 @@
     <PackageIcon>icon.jpg</PackageIcon>
     <PackageReleaseNotes>
 			v0.1.0 完成从Senparc.Weixin.Work.dll的初步移植，添加Work（企业微信）中的新接口
-
 			v0.2.0 整理类名，MessageHandler跑通
-
 			v0.3.0 AccessTokenResult 加入 IAccessTokenResult 接口
 			v0.3.1 修复OaDataOpenApi接口AccessToken传递问题
 			v0.3.2 修复Senparc.Weixin.QY.AdvancedAPIs.MassApi中，因为accessToken为null而导致消息发送失败的问题
 			v0.3.3 为Tencent命名空间添加Senparc.Weixin.Work前缀
-
 			v0.4.0 支持 .NET Core 2.0
 			v0.4.1 更新MailListApi.GetDepartmentMemberInfo()参数
 			v0.4.2 添加 GetMemberResult.order 属性
-
 			v1.0.0 发布正式版
 			v1.0.1 完善GetUserInfoResult属性
 			v1.1.0 添加 OAuth2Api.GetUserDetail()方法
 			v1.1.1 GetCheckinDataJsonResult_Result 添加 mediaids 属性（打卡的附件media_id，可使用media/get获取附件）
 			v1.1.2 GetCheckinDataJsonResult 修改 checkindata 属性名称
 			v1.1.3 添加发送textcard消息方法：MassApi.SendTextCard()
-
 			v1.2.0-beta1 支持 .NET 3.5/4.0
 			v1.2.0-beta2 部门id改为long类型
 			v1.2.2 支持Senparc.Weixin v4.18.0，支持Ajax模拟请求
@@ -58,22 +53,16 @@
 			v1.2.12 添加【获取打卡规则】接口
 			v1.2.13 调整“获取应用”接口，重新释放allow_tags属性。
 			v1.2.14 MessageHandler添加对文件类型消息的处理
-
 			v1.3.0 停止对 .net core 1.1 生成的独立版本
 			v1.3.1 提供 RegisterServices 进行快捷注册
-
 			v1.4.0 新增企业微信群聊会话功能支持
 			v1.4.1 增加“接收通讯录变更事件”
 			v1.4.2 修改 AsynchronousReplaceUserResult 参数类型
-
 			v1.5.0-rc1 支持 .NET Core 2.1.0-rc1-final
-
 			v1.6.0-rc1
 			1、支持 Senparc.Weixin v4.22.0-rc1
 			2、修复 MediaApi.UploadimgMedia() 方法文件上传问题
-
 			v1.6.0 发布支持 .net core 2.1 的正式版
-
 			v2.0.0 引入 Senparc.CO2NET，支持 Senparc.Weixin v5.0
 			v2.0.3 支持 Senparc.Weixin v5.0.3，EntityHelper支持更多
 			v2.0.6.1  持 CO3NET v0.1.6.1 解决 XXE 漏洞
@@ -88,7 +77,6 @@
 			v2.2.0 实现 SenparcWeixinSetting 自动注册
 			v2.4.1 添加 GetUserInfoResult.CorpId 属性
 			v2.4.2 支持 Senparc.Weixin.MP v15.2.4
-
 			v3.0.0 支持 NeuChar 标准
 			v3.0.1 支持 Senparc.Weixin v6.0.1
 			v3.1.0 支持 Senparc.NeuChar v0.0.5
@@ -225,6 +213,9 @@
 			[2026-05-23] v3.30.3 fix: 修复 MediaApi 文件上传接口 fileDictionary 格式错误，导致媒体文件为空的问题
 			[2026-05-23] v3.30.4 feat: 添加 appid 和 pagepath 属性以支持企业微信图文消息跳转小程序功能
 			[2026-06-08] v3.31.0 feat: 添加日历 API 接口；完善日程接口，新增添加日程参与者、按日历获取日程、取消日程等接口 / PR #3300 / Issue #3298 感谢 @Chenfan0821 @JaneConan
+			[2026-07-18] v3.31.1 修复企业微信凭据容器并发刷新与消息加密资源管理
+			1、同步完成容器注册，并通过分布式锁内二次检查避免凭据重复刷新
+			2、使用密码学安全随机数并规范 AES、SHA 加密资源释放
 		</PackageReleaseNotes>
 		<RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
 		<SignAssembly>False</SignAssembly>

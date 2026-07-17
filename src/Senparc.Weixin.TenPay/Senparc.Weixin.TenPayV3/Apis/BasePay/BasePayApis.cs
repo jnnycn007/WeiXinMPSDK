@@ -25,7 +25,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：新微信支付V3基础接口
     
     
-    创建标识：Senparc - 20210804
+    创建标识：Senparc - 20180904
 
     修改标识：Senparc - 20210811
     修改描述：完成JsApi支付签名方法
@@ -53,6 +53,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：mojinxun - 20250618
     修改描述：v2.1.0 兼容微信平台证书和微信支付公钥 / PR #3144
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 释放账单下载响应，避免连接资源泄漏
+
 ----------------------------------------------------------------*/
 
 using Senparc.CO2NET.Helpers;
@@ -675,7 +679,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                 //下载交易账单
                 if (result.VerifySignSuccess == true)
                 {
-                    var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
+                    using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
                     fileStream.Seek(0, SeekOrigin.Begin);
                     await responseMessage.Content.CopyToAsync(fileStream);
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -724,7 +728,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                 //下载资金账单
                 if (result.VerifySignSuccess == true)
                 {
-                    var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
+                    using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
                     fileStream.Seek(0, SeekOrigin.Begin);
                     await responseMessage.Content.CopyToAsync(fileStream);
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -769,7 +773,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                 //下载交易账单
                 if (result.VerifySignSuccess == true)
                 {
-                    var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
+                    using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
                     fileStream.Seek(0, SeekOrigin.Begin);
                     await responseMessage.Content.CopyToAsync(fileStream);
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -813,7 +817,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                 //下载资金账单
                 if (result.VerifySignSuccess == true)
                 {
-                    var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
+                    using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(result.download_url, null, requestMethod: ApiRequestMethod.GET);
                     fileStream.Seek(0, SeekOrigin.Begin);
                     await responseMessage.Content.CopyToAsync(fileStream);
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -860,7 +864,7 @@ namespace Senparc.Weixin.TenPayV3.Apis
                     foreach (var item in result.download_bill_list ?? new List<SubmerchantBillDownloadItem>())
                     {
                         var fileStream = new MemoryStream();
-                        var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(item.download_url, null, requestMethod: ApiRequestMethod.GET);
+                        using var responseMessage = await tenPayApiRequest.GetHttpResponseMessageAsync(item.download_url, null, requestMethod: ApiRequestMethod.GET);
                         fileStream.Seek(0, SeekOrigin.Begin);
                         await responseMessage.Content.CopyToAsync(fileStream);
                         fileStream.Seek(0, SeekOrigin.Begin);
@@ -890,4 +894,3 @@ namespace Senparc.Weixin.TenPayV3.Apis
         #endregion
     }
 }
-

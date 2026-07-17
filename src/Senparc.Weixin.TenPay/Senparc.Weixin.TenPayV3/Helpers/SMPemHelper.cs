@@ -1,4 +1,18 @@
-﻿using Org.BouncyCastle.Asn1.X9;
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2026 Senparc
+
+    文件名：SMPemHelper.cs
+    文件功能描述：微信支付国密证书密钥参数加载辅助类
+
+
+    创建标识：Senparc - 20240720
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.4.1 及时释放国密证书资源
+
+----------------------------------------------------------------*/
+
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -30,8 +44,11 @@ namespace Senparc.Weixin.TenPayV3.Helpers
         public static ECPublicKeyParameters LoadPublicKeyToParameters(byte[] publicKeyBytes)
         {
             //使用 X509Certificate2 证书
-            var x509 = new X509Certificate2(publicKeyBytes);
-            var hex = x509.GetPublicKeyString();
+            string hex;
+            using (var x509 = new X509Certificate2(publicKeyBytes))
+            {
+                hex = x509.GetPublicKeyString();
+            }
             // 假设hex字符串是不带前缀的未压缩公钥（65字节：1字节0x04 + 32字节X坐标 + 32字节Y坐标）  
             if (hex.Length != 130) // 04 + 2 * 32 * 2 (hex字符)  
             {

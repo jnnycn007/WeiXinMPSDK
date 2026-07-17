@@ -219,6 +219,7 @@ app.UseMessageHandlerForMp("/WeixinAsync",
 * [🍟 感谢贡献者](#-感谢贡献者)
 * [💰 捐助](#-捐助)
 * [⭐ Star 数量统计](#-star-数量统计)
+* [📊 项目运营统计](#-项目运营统计)
 * [📎 License](#-license)
 
 本库包含了 .NET Framework/.NET Standard 2.0+/.NET Core 3.1/.NET 6/.NET 7/.NET 8/.NET 10 等多个版本的源代码（核心逻辑完全一致）：
@@ -330,7 +331,7 @@ app.UseMessageHandlerForMp("/WeixinAsync",
 * 已经支持分布式缓存及缓存策略扩展（默认支持：本地缓存、Redis、Memcached，可自由扩展），开发过程无需关心所使用缓存的类型，可在配置文件或运行过程中自由切换。
 
 > 1.目前官方的 API 都已完美集成，除非有特殊说明，所有升级都会尽量确保向下兼容，所以已经发布的版本请放心使用或直接升级（覆盖）最新的 dll，建议使用 [Nuget](https://www.nuget.org/) 进行更新。<br>
-> 2. 您也可以自行修改并编译代码，打开 [Senparc.Weixin.Sample.Net8.sln](/Samples/All/net8-mvc/) 解决方案即可看到所有源码。当编译模式为 `Release` 时，将自动生成本地 Nuget 包（默认生成到 `/src/BuildOutPut/` 文件夹下）。
+> 2. 您也可以自行修改并编译代码，打开 [Senparc.Weixin.Sample.Net10.sln](/Samples/All/net10-mvc/) 解决方案即可看到所有源码。当编译模式为 `Release` 时，将自动生成本地 Nuget 包（默认生成到 `/src/BuildOutPut/` 文件夹下）。
 
 ## 💾 源码项目文件夹说明（src文件夹下）
 
@@ -738,7 +739,21 @@ namespace Senparc.Weixin.MP.Sample.CustomerMessageHandler
 
 ## ⭐ Star 数量统计 
 
-[![starcharts stargazers over time](https://starchart.cc/JeffreySu/WeiXinMPSDK.svg)](https://starchart.cc/JeffreySu/WeiXinMPSDK)
+[![GitHub Stars](https://img.shields.io/github/stars/JeffreySu/WeiXinMPSDK?style=for-the-badge&logo=github&label=Stars)](https://github.com/JeffreySu/WeiXinMPSDK)
+
+## 📊 项目运营统计
+
+### Star 增长趋势
+
+[![Star History](https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=7560589&image_size=auto&color_scheme=light)](https://ossinsight.io/analyze/JeffreySu/WeiXinMPSDK)
+
+### Issue 打开/关闭趋势
+
+[![Issues Opened and Closed](https://next.ossinsight.io/widgets/official/analyze-repo-issue-opened-and-closed/thumbnail.png?repo_id=7560589&image_size=auto&color_scheme=light)](https://next.ossinsight.io/widgets/official/analyze-repo-issue-opened-and-closed?repo_id=7560589)
+
+### NuGet 累计下载量
+
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Senparc.Weixin?style=for-the-badge&logo=nuget&label=NuGet%20Downloads)](https://www.nuget.org/packages/Senparc.Weixin)
 
 ## 📎 License
 

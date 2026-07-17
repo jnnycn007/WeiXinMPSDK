@@ -21,7 +21,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 /*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
 
-    文件名：WeixinContainer.cs
+    文件名：BaseContainer.cs
     文件功能描述：微信容器（如Ticket、AccessToken）
 
 
@@ -59,6 +59,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20210127
     修改描述：RegisterFuncCollection 改为 ConcurrentDictionary 类型
+
+    修改标识：Senparc - 20260718
+    修改描述：v6.23.2 修复缓存策略热切换、空值移除和并发重注册问题
 
 ----------------------------------------------------------------*/
 
@@ -98,6 +101,7 @@ namespace Senparc.Weixin.Containers
     {
         private static IBaseObjectCacheStrategy _baseCache = null;
         private static IContainerCacheStrategy _containerCache = null;
+        private static readonly object CacheSyncRoot = new object();
 
         /// <summary>
         /// 获取符合当前缓存策略配置的缓存的操作对象实例
@@ -111,14 +115,22 @@ namespace Senparc.Weixin.Containers
 
                 //以下代码可以实现缓存“热切换”，损失的效率有限。如果需要追求极致效率，可以禁用type的判断
                 var containerCacheStrategy = ContainerCacheStrategyFactory.GetContainerCacheStrategyInstance()/*.ContainerCacheStrategy*/;
-                if (_containerCache == null || _containerCache.GetType() != containerCacheStrategy.GetType())
+                if (_containerCache == null ||
+                    _baseCache == null ||
+                    _containerCache.GetType() != containerCacheStrategy.GetType())
                 {
-                    _containerCache = containerCacheStrategy;
-                }
+                    lock (CacheSyncRoot)
+                    {
+                        containerCacheStrategy = ContainerCacheStrategyFactory.GetContainerCacheStrategyInstance();
+                        if (_containerCache == null ||
+                            _baseCache == null ||
+                            _containerCache.GetType() != containerCacheStrategy.GetType())
+                        {
+                            _containerCache = containerCacheStrategy;
+                            _baseCache = containerCacheStrategy.BaseCacheStrategy();
+                        }
+                    }
 
-                if (_baseCache == null)
-                {
-                    _baseCache = _baseCache ?? containerCacheStrategy.BaseCacheStrategy();
                 }
                 return _baseCache;
             }
@@ -268,8 +280,10 @@ namespace Senparc.Weixin.Containers
         /// <returns></returns>
         public static List<TBag> GetAllItems()
         {
+            _ = Cache;//确保容器缓存策略已初始化，并同步完成可能的热切换
+            var containerCache = _containerCache;
             //return Cache.GetAll<TBag>().Values
-            return _containerCache.GetAll<TBag>().Values
+            return containerCache.GetAll<TBag>().Values
                 //如果需要做进一步的筛选，则使用Select或Where，但需要注意效率问题
                 //.Select(z => z)
                 .ToList();
@@ -322,6 +336,7 @@ namespace Senparc.Weixin.Containers
             if (bag == null)
             {
                 Cache.RemoveFromCache(cacheKey);
+                return;
             }
             else
             {
@@ -402,10 +417,10 @@ namespace Senparc.Weixin.Containers
         {
             var cacheKey = GetBagCacheKey(shortKey);
             var registered = Cache.CheckExisted(cacheKey);
-            if (!registered && RegisterFuncCollection.ContainsKey(shortKey))
+            if (!registered && RegisterFuncCollection.TryGetValue(shortKey, out var registerFunc))
             {
                 //如果注册不成功，测尝试重新注册（前提是已经进行过注册），这种情况适用于分布式缓存被清空（重启）的情况。
-                RegisterFuncCollection[shortKey]().GetAwaiter().GetResult();//使用同步方法返回
+                registerFunc().ConfigureAwait(false).GetAwaiter().GetResult();//使用同步方法返回
             }
 
             return Cache.CheckExisted(cacheKey);
@@ -478,8 +493,10 @@ namespace Senparc.Weixin.Containers
         /// <returns></returns>
         public static async Task<List<TBag>> GetAllItemsAsync()
         {
+            _ = Cache;//确保容器缓存策略已初始化，并同步完成可能的热切换
+            var containerCache = _containerCache;
             //return Cache.GetAll<TBag>().Values
-            return (await _containerCache.GetAllAsync<TBag>().ConfigureAwait(false)).Values
+            return (await containerCache.GetAllAsync<TBag>().ConfigureAwait(false)).Values
                 //如果需要做进一步的筛选，则使用Select或Where，但需要注意效率问题
                 //.Select(z => z)
                 .ToList();
@@ -530,6 +547,7 @@ namespace Senparc.Weixin.Containers
             if (bag == null)
             {
                 await Cache.RemoveFromCacheAsync(cacheKey).ConfigureAwait(false);
+                return;
             }
             else
             {
@@ -611,10 +629,10 @@ namespace Senparc.Weixin.Containers
             var cacheKey = GetBagCacheKey(shortKey);
             var registered = await Cache.CheckExistedAsync(cacheKey).ConfigureAwait(false);
 
-            if (!registered && RegisterFuncCollection.ContainsKey(shortKey))
+            if (!registered && RegisterFuncCollection.TryGetValue(shortKey, out var registerFunc))
             {
                 //如果注册不成功，测尝试重新注册（前提是已经进行过注册），这种情况适用于分布式缓存被清空（重启）的情况。
-                await RegisterFuncCollection[shortKey]().ConfigureAwait(false);//使用异步方法返回
+                await registerFunc().ConfigureAwait(false);//使用异步方法返回
             }
 
             return await Cache.CheckExistedAsync(cacheKey).ConfigureAwait(false);
@@ -634,4 +652,3 @@ namespace Senparc.Weixin.Containers
 
     }
 }
-

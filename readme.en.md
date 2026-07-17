@@ -219,6 +219,7 @@ Now you have mastered the basic skills required for WeChat platform development.
 * [🍟 Thanks to Contributors](#-thanks-to-contributors)
 * [💰 Donate](#-donations)
 * [⭐ Star Quantity Statistics](#-star-quantity-statistics)
+* [📊 Project Operations Statistics](#-project-operations-statistics)
 * [📎 License](#-license)
 
 This repository includes source code for .NET Framework / .NET Standard 2.0+ / .NET Core 3.1 / .NET 6 / .NET 7 / .NET 8 / .NET 10 (same core logic):
@@ -736,6 +737,20 @@ Donate:
 
 [![starcharts stargazers over time](https://starchart.cc/JeffreySu/WeiXinMPSDK.svg)](https://starchart.cc/JeffreySu/WeiXinMPSDK)
 
+## 📊 Project Operations Statistics
+
+### Star Growth Trend
+
+[![Star History](https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=7560589&image_size=auto&color_scheme=light)](https://ossinsight.io/analyze/JeffreySu/WeiXinMPSDK)
+
+### Issues Opened and Closed Trend
+
+[![Issues Opened and Closed](https://next.ossinsight.io/widgets/official/analyze-repo-issue-opened-and-closed/thumbnail.png?repo_id=7560589&image_size=auto&color_scheme=light)](https://next.ossinsight.io/widgets/official/analyze-repo-issue-opened-and-closed?repo_id=7560589)
+
+### Total NuGet Downloads
+
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Senparc.Weixin?style=for-the-badge&logo=nuget&label=NuGet%20Downloads)](https://www.nuget.org/packages/Senparc.Weixin)
+
 ## 📎 License
 
 Apache License Version 2.0
@@ -757,4 +772,3 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
 > [!TIP]
 > 100% open source, commercial use supported.
-

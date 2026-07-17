@@ -14,6 +14,10 @@
     <RootNamespace>Senparc.Weixin.MP.Sample</RootNamespace>
     <AssemblyName>Senparc.Weixin.MP.Sample</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <Version>1.0.1</Version>
+    <PackageReleaseNotes>
+      [2026-07-18] v1.0.1 Dependency update from Senparc.Weixin.Net10Sample.CommonService to 3.0.3
+    </PackageReleaseNotes>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort>65335</IISExpressSSLPort>

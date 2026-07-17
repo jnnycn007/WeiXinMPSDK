@@ -3,13 +3,16 @@
     文件功能描述：加解密算法
     
     
-    创建标识：Senparc - 20150313
+    创建标识：Senparc - 20140920
     
     修改标识：Senparc - 20150313
     修改描述：整理接口
 
     修改标识：Senparc - 20191005
     修改描述：合并更新官方最新示例（没有实质变化）：https://work.weixin.qq.com/api/doc#90000/90138/90307/c#%E5%BA%93
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.31.1 规范 SHA1 哈希资源释放
 
 ----------------------------------------------------------------*/
 
@@ -252,21 +255,22 @@ namespace Senparc.Weixin.Work.Tencent
                 raw += AL[i];
             }
 
-            SHA1 sha;
             ASCIIEncoding enc;
             string hash = "";
             try
             {
 #if NET462
-                sha = new SHA1CryptoServiceProvider();
+                using (var sha = new SHA1CryptoServiceProvider())
 #else
-                sha = SHA1.Create();
+                using (var sha = SHA1.Create())
 #endif
-                enc = new ASCIIEncoding();
-                byte[] dataToHash = enc.GetBytes(raw);
-                byte[] dataHashed = sha.ComputeHash(dataToHash);
-                hash = BitConverter.ToString(dataHashed).Replace("-", "");
-                hash = hash.ToLower();
+                {
+                    enc = new ASCIIEncoding();
+                    byte[] dataToHash = enc.GetBytes(raw);
+                    byte[] dataHashed = sha.ComputeHash(dataToHash);
+                    hash = BitConverter.ToString(dataHashed).Replace("-", "");
+                    hash = hash.ToLower();
+                }
             }
             catch (Exception)
             {
