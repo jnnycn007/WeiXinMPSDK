@@ -13,7 +13,7 @@
 ----------------------------------------------------------------*/
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Senparc.Weixin.Containers
@@ -22,7 +22,7 @@ namespace Senparc.Weixin.Containers
     /// 储存 Container 注册过程方法的集合
     /// </summary>
     /// <typeparam name="TBag"></typeparam>
-    public class BaseContainerRegisterFuncCollection<TBag> : ConcurrentDictionary<string, Func<Task<TBag>>>
+    public class BaseContainerRegisterFuncCollection<TBag> : Dictionary<string, Func<Task<TBag>>>
          where TBag : class, IBaseContainerBag, new()
     {
         private readonly object _capacityLock = new object();
@@ -63,7 +63,13 @@ namespace Senparc.Weixin.Containers
         /// </summary>
         public new Func<Task<TBag>> this[string key]
         {
-            get => base[key];
+            get
+            {
+                lock (_capacityLock)
+                {
+                    return base[key];
+                }
+            }
             set
             {
                 if (key == null)
@@ -85,6 +91,65 @@ namespace Senparc.Weixin.Containers
 
                     base[key] = value;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 获取当前注册委托数量。
+        /// </summary>
+        public new int Count
+        {
+            get
+            {
+                lock (_capacityLock)
+                {
+                    return base.Count;
+                }
+            }
+        }
+
+        public new void Add(string key, Func<Task<TBag>> value)
+        {
+            lock (_capacityLock)
+            {
+                if (base.Count >= _maximumCount)
+                {
+                    throw new InvalidOperationException($"注册委托数量已达到上限 {_maximumCount}。");
+                }
+
+                base.Add(key, value);
+            }
+        }
+
+        public new bool Remove(string key)
+        {
+            lock (_capacityLock)
+            {
+                return base.Remove(key);
+            }
+        }
+
+        public new bool ContainsKey(string key)
+        {
+            lock (_capacityLock)
+            {
+                return base.ContainsKey(key);
+            }
+        }
+
+        public new bool TryGetValue(string key, out Func<Task<TBag>> value)
+        {
+            lock (_capacityLock)
+            {
+                return base.TryGetValue(key, out value);
+            }
+        }
+
+        public new void Clear()
+        {
+            lock (_capacityLock)
+            {
+                base.Clear();
             }
         }
     }

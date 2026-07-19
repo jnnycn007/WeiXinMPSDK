@@ -270,7 +270,15 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
             return $"mchid=\"{_tenpayV3Setting.TenPayV3_MchId}\",nonce_str=\"{nonce}\",timestamp=\"{timestamp}\",serial_no=\"{_tenpayV3Setting.TenPayV3_SerialNumber}\",signature=\"{signature}\"";
         }
 
-        protected async Task<bool> VerifyResponseMessage(HttpResponseMessage responseMessage, string content, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// 验证响应签名。保留历史二参数签名，供已编译的派生类型继续调用。
+        /// </summary>
+        protected Task<bool> VerifyResponseMessage(HttpResponseMessage responseMessage, string content)
+        {
+            return VerifyResponseMessage(responseMessage, content, CancellationToken.None);
+        }
+
+        protected async Task<bool> VerifyResponseMessage(HttpResponseMessage responseMessage, string content, CancellationToken cancellationToken)
         {
             var wechatpayTimestamp = responseMessage.Headers.GetValues("Wechatpay-Timestamp").First();
             var wechatpayNonce = responseMessage.Headers.GetValues("Wechatpay-Nonce").First();

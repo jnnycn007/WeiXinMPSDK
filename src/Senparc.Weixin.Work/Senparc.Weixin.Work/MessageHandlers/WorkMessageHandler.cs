@@ -120,10 +120,6 @@ namespace Senparc.Weixin.Work.MessageHandlers
         : MessageHandler<TMC, IWorkRequestMessageBase, IWorkResponseMessageBase>, IWorkMessageHandler
         where TMC : class, IMessageContext<IWorkRequestMessageBase, IWorkResponseMessageBase>, new()
     {
-        private IWorkResponseMessageBase _cachedResponseMessage;
-        private XDocument _cachedResponseDocument;
-        private XDocument _cachedFinalResponseDocument;
-
         /// <summary>
         /// 根据ResponseMessageBase获得转换后的ResponseDocument
         /// 注意：这里每次请求都会根据当前的ResponseMessageBase生成一次，如需重用此数据，建议使用缓存或局部变量
@@ -133,19 +129,9 @@ namespace Senparc.Weixin.Work.MessageHandlers
             get
             {
                 var responseMessage = ResponseMessage;
-                if (responseMessage == null)
-                {
-                    return null;
-                }
-
-                if (!ReferenceEquals(_cachedResponseMessage, responseMessage))
-                {
-                    _cachedResponseMessage = responseMessage;
-                    _cachedResponseDocument = EntityHelper.ConvertEntityToXml(responseMessage as WorkResponseMessageBase);
-                    _cachedFinalResponseDocument = null;
-                }
-
-                return _cachedResponseDocument;
+                return responseMessage != null
+                    ? EntityHelper.ConvertEntityToXml(responseMessage as WorkResponseMessageBase)
+                    : null;
             }
         }
 
@@ -163,11 +149,6 @@ namespace Senparc.Weixin.Work.MessageHandlers
                     return null;
                 }
 
-                if (_cachedFinalResponseDocument != null)
-                {
-                    return _cachedFinalResponseDocument;
-                }
-
                 var timeStamp = SystemTime.Now.Ticks.ToString();
                 var nonce = SystemTime.Now.Ticks.ToString();
 
@@ -175,7 +156,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
                 string finalResponseXml = null;
                 msgCrype.EncryptMsg(responseDocument.ToString(), timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
 
-                return _cachedFinalResponseDocument = XDocument.Parse(finalResponseXml);
+                return XDocument.Parse(finalResponseXml);
             }
         }
 
@@ -223,12 +204,6 @@ namespace Senparc.Weixin.Work.MessageHandlers
             }
             set
             {
-                if (!ReferenceEquals(base.ResponseMessage, value))
-                {
-                    _cachedResponseMessage = null;
-                    _cachedResponseDocument = null;
-                    _cachedFinalResponseDocument = null;
-                }
                 base.ResponseMessage = value;
             }
         }

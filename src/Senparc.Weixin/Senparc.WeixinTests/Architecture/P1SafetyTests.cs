@@ -5,6 +5,9 @@ using Senparc.Weixin.Containers.Tests;
 using Senparc.Weixin.Exceptions;
 using Senparc.Weixin.MessageContexts;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,6 +51,22 @@ namespace Senparc.WeixinTests.Architecture
         }
 
         [TestMethod]
+        public void PublishedContainerMetadataSignaturesRemainCompatible()
+        {
+            var registrationProperty = typeof(BaseContainer<TestContainerBag1>).GetProperty(
+                "RegisterFuncCollection",
+                BindingFlags.Static | BindingFlags.NonPublic);
+
+            Assert.IsNotNull(registrationProperty);
+            Assert.AreEqual(
+                typeof(ConcurrentDictionary<string, Func<Task<TestContainerBag1>>>),
+                registrationProperty.PropertyType);
+            Assert.AreEqual(
+                typeof(Dictionary<string, Func<Task<TestContainerBag1>>>),
+                typeof(BaseContainerRegisterFuncCollection<TestContainerBag1>).BaseType);
+        }
+
+        [TestMethod]
         public async Task UnifiedErrorModelRethrowsCancellation()
         {
             using var cancellation = new CancellationTokenSource();
@@ -58,7 +77,7 @@ namespace Senparc.WeixinTests.Architecture
         }
 
         [TestMethod]
-        public void MessageContextDefaultIsBounded()
+        public void MessageContextCompatibilityAndSafeDefaultAreExplicit()
         {
             var originalDefault = MessageContextSafetyOptions.DefaultMaxRecordCount;
             var originalMaximum = MessageContextSafetyOptions.MaximumRecordCount;
@@ -67,8 +86,9 @@ namespace Senparc.WeixinTests.Architecture
                 MessageContextSafetyOptions.MaximumRecordCount = 100;
                 MessageContextSafetyOptions.DefaultMaxRecordCount = 25;
 
-                Assert.AreEqual(25, MessageContextSafetyOptions.ResolveMaxRecordCount(0));
-                Assert.AreEqual(100, MessageContextSafetyOptions.ResolveMaxRecordCount(1000));
+                Assert.AreEqual(0, MessageContextSafetyOptions.ResolveMaxRecordCount(0));
+                Assert.AreEqual(25, MessageContextSafetyOptions.ResolveMaxRecordCount(MessageContextSafetyOptions.DefaultRecordCount));
+                Assert.AreEqual(1000, MessageContextSafetyOptions.ResolveMaxRecordCount(1000));
                 Assert.AreEqual(0, MessageContextSafetyOptions.ResolveMaxRecordCount(MessageContextSafetyOptions.UnlimitedRecordCount));
             }
             finally

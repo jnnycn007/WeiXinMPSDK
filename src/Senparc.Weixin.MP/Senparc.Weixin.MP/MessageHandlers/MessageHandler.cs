@@ -92,10 +92,6 @@ namespace Senparc.Weixin.MP.MessageHandlers
     {
         #region 属性设置
 
-        private IResponseMessageBase _cachedResponseMessage;
-        private XDocument _cachedResponseDocument;
-        private XDocument _cachedFinalResponseDocument;
-
         ///// <summary>
         ///// 原始的加密请求（如果不加密则为null）
         ///// </summary>
@@ -110,19 +106,9 @@ namespace Senparc.Weixin.MP.MessageHandlers
             get
             {
                 var responseMessage = ResponseMessage;
-                if (responseMessage == null)
-                {
-                    return null;
-                }
-
-                if (!ReferenceEquals(_cachedResponseMessage, responseMessage))
-                {
-                    _cachedResponseMessage = responseMessage;
-                    _cachedResponseDocument = EntityHelper.ConvertEntityToXml(responseMessage as ResponseMessageBase);
-                    _cachedFinalResponseDocument = null;
-                }
-
-                return _cachedResponseDocument;
+                return responseMessage != null
+                    ? EntityHelper.ConvertEntityToXml(responseMessage as ResponseMessageBase)
+                    : null;
             }
         }
 
@@ -140,14 +126,9 @@ namespace Senparc.Weixin.MP.MessageHandlers
                     return null;
                 }
 
-                if (_cachedFinalResponseDocument != null)
-                {
-                    return _cachedFinalResponseDocument;
-                }
-
                 if (!UsingEncryptMessage)
                 {
-                    return _cachedFinalResponseDocument = responseDocument;
+                    return responseDocument;
                 }
 
                 var timeStamp = SystemTime.Now.Ticks.ToString();
@@ -157,7 +138,7 @@ namespace Senparc.Weixin.MP.MessageHandlers
                 string finalResponseXml = null;
                 msgCrype.EncryptResponseMsg(responseDocument.ToString().Replace("\r\n", "\n")/* 替换\r\n是为了处理iphone设备上换行bug */, timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
 
-                return _cachedFinalResponseDocument = XDocument.Parse(finalResponseXml);
+                return XDocument.Parse(finalResponseXml);
             }
         }
 
@@ -172,20 +153,7 @@ namespace Senparc.Weixin.MP.MessageHandlers
         /// 正常情况下只有当执行Execute()方法后才可能有值。
         /// 也可以结合Cancel，提前给ResponseMessage赋值。
         /// </summary>
-        public new IResponseMessageBase ResponseMessage
-        {
-            get => base.ResponseMessage as IResponseMessageBase;
-            set
-            {
-                if (!ReferenceEquals(base.ResponseMessage, value))
-                {
-                    _cachedResponseMessage = null;
-                    _cachedResponseDocument = null;
-                    _cachedFinalResponseDocument = null;
-                }
-                base.ResponseMessage = value;
-            }
-        }
+        public new IResponseMessageBase ResponseMessage { get => base.ResponseMessage as IResponseMessageBase; set => base.ResponseMessage = value; }
 
         private PostModel _postModel { get => base.PostModel as PostModel; set => base.PostModel = value; }
 

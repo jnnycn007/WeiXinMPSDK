@@ -31,7 +31,9 @@ weixin inspect --workspace .
 
 ## AgentKernel / MAF Harness
 
-复制 `appsettings.example.json` 到工作区外的私有位置并配置供应商。配置也可用 `WEIXIN_HARNESS_` 前缀环境变量覆盖，嵌套键使用双下划线。
+`appsettings.example.json` 默认使用 NeuCharAI，且只包含安全占位值。可在同一目录创建被 Git 忽略的 `appsettings.Development.json` 保存本地凭据：当 `DOTNET_ENVIRONMENT` 或 `ASPNETCORE_ENVIRONMENT` 为 `Development` 时，该文件会覆盖基础配置；未显式设置环境且文件存在时也按本地开发配置优先。显式设置为 `Production`、`Staging` 等其他环境时不会加载开发配置。
+
+配置仍可用 `WEIXIN_HARNESS_` 前缀环境变量覆盖，嵌套键使用双下划线；环境变量的优先级最高。
 
 先生成并审查计划：
 

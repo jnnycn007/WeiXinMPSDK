@@ -243,7 +243,7 @@ namespace Senparc.Weixin.Work.Containers
             {
                 //记录注册信息，RegisterFunc委托内的过程会在缓存丢失之后自动重试
                 var appKey = AccessTokenContainer.BuildingKey(corpId, corpSecret, isAgentConfig);
-                RegisterFuncCollection[appKey] = async () =>
+                SetRegistrationCallback(appKey, async () =>
                 {
                     //using (FlushCache.CreateInstance())
                     //{
@@ -258,7 +258,7 @@ namespace Senparc.Weixin.Work.Containers
                     await UpdateAsync(appKey, bag, null).ConfigureAwait(false);
                     return bag;
                     //}
-                };
+                });
                 await RegisterFuncCollection[appKey]().ConfigureAwait(false);
             }
 

@@ -236,7 +236,7 @@ namespace Senparc.Weixin.MP.Containers
         public static async Task RegisterAsync(string appId, string appSecret, string name = null)
         {
             //记录注册信息，RegisterFunc委托内的过程会在缓存丢失之后自动重试
-            RegisterFuncCollection[appId] = async () =>
+            SetRegistrationCallback(appId, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -252,7 +252,7 @@ namespace Senparc.Weixin.MP.Containers
                 await UpdateAsync(appId, bag, null).ConfigureAwait(false);//第一次添加，此处已经立即更新
                 return bag;
                 //}
-            };
+            });
 
             var registerTask = RegisterFuncCollection[appId]();
 
@@ -292,7 +292,7 @@ namespace Senparc.Weixin.MP.Containers
                 throw new ArgumentNullException(nameof(credentialProvider));
             }
 
-            RegisterFuncCollection[appId] = async () =>
+            SetRegistrationCallback(appId, async () =>
             {
                 var secret = await credentialProvider.GetSecretAsync(appId, CancellationToken.None).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(secret))
@@ -310,7 +310,7 @@ namespace Senparc.Weixin.MP.Containers
                 };
                 await UpdateAsync(appId, bag, null).ConfigureAwait(false);
                 return bag;
-            };
+            });
 
             cancellationToken.ThrowIfCancellationRequested();
             var initialSecret = await credentialProvider.GetSecretAsync(appId, cancellationToken).ConfigureAwait(false);

@@ -38,6 +38,22 @@ namespace Senparc.Weixin.TenPayV3.Test.HttpHandlers
         }
 
         [TestMethod]
+        public void LegacyConstructorAllowsBodyLargerThanNewDefaultLimit()
+        {
+            var body = Encoding.UTF8.GetBytes("{\"padding\":\"" +
+                new string('a', TenPayNotifyHandler.DefaultMaxBodyBytes) + "\"}");
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Method = "POST";
+            httpContext.Request.ContentLength = body.Length;
+            httpContext.Request.Body = new MemoryStream(body);
+
+            var handler = new TenPayNotifyHandler(httpContext, CreateSetting());
+
+            Assert.IsNotNull(handler);
+            Assert.AreEqual(0, httpContext.Request.Body.Position);
+        }
+
+        [TestMethod]
         public async Task CreateAsyncHonorsCancellation()
         {
             var httpContext = new DefaultHttpContext();

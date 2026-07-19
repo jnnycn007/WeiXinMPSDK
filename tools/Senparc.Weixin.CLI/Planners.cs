@@ -112,10 +112,7 @@ internal sealed class AgentKernelPlanner : IHarnessPlanner
     public async Task<HarnessPlan> CreatePlanAsync(AgentRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile(_configurationPath, optional: false, reloadOnChange: false)
-            .AddEnvironmentVariables(prefix: "WEIXIN_HARNESS_")
-            .Build();
+        var configuration = BuildConfiguration(_configurationPath, ResolveEnvironmentName());
         var setting = configuration.GetSection("SenparcAiSetting").Get<SenparcAiSetting>()
             ?? throw new InvalidOperationException(
                 $"Missing SenparcAiSetting in {_configurationPath}. See appsettings.example.json.");
@@ -162,6 +159,52 @@ internal sealed class AgentKernelPlanner : IHarnessPlanner
             .ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         return PlanJson.Parse(result.OutputString, request.Goal);
+    }
+
+    internal static IConfigurationRoot BuildConfiguration(
+        string configurationPath,
+        string? environmentName)
+    {
+        var baseConfigurationPath = Path.GetFullPath(configurationPath);
+        var developmentConfigurationPath = Path.Combine(
+            Path.GetDirectoryName(baseConfigurationPath) ?? Environment.CurrentDirectory,
+            "appsettings.Development.json");
+        var hasExplicitEnvironment = !string.IsNullOrWhiteSpace(environmentName);
+        var shouldLoadDevelopmentConfiguration = File.Exists(developmentConfigurationPath)
+            && (!hasExplicitEnvironment
+                || string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase));
+
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile(baseConfigurationPath, optional: false, reloadOnChange: false);
+        if (shouldLoadDevelopmentConfiguration
+            && !string.Equals(
+                baseConfigurationPath,
+                developmentConfigurationPath,
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal))
+        {
+            builder.AddJsonFile(
+                developmentConfigurationPath,
+                optional: false,
+                reloadOnChange: false);
+        }
+
+        return builder
+            .AddEnvironmentVariables(prefix: "WEIXIN_HARNESS_")
+            .Build();
+    }
+
+    private static string? ResolveEnvironmentName()
+    {
+        var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        if (!string.IsNullOrWhiteSpace(environmentName))
+        {
+            return environmentName;
+        }
+
+        environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        return string.IsNullOrWhiteSpace(environmentName) ? null : environmentName;
     }
 
     private static string BuildPrompt(AgentRequest request)

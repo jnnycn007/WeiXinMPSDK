@@ -105,6 +105,8 @@ namespace Senparc.Weixin.Containers
         private static IBaseObjectCacheStrategy _baseCache = null;
         private static IContainerCacheStrategy _containerCache = null;
         private static readonly object CacheSyncRoot = new object();
+        private static readonly object RegistrationCallbackSyncRoot = new object();
+        private static int _maximumRegistrationCallbackCount = 10000;
 
         /// <summary>
         /// 获取符合当前缓存策略配置的缓存的操作对象实例
@@ -195,7 +197,8 @@ namespace Senparc.Weixin.Containers
         /// <summary>
         /// 进行注册过程的委托集合
         /// </summary>
-        protected static BaseContainerRegisterFuncCollection<TBag> RegisterFuncCollection { get; set; } = new BaseContainerRegisterFuncCollection<TBag>();
+        protected static ConcurrentDictionary<string, Func<Task<TBag>>> RegisterFuncCollection { get; set; } =
+            new ConcurrentDictionary<string, Func<Task<TBag>>>(StringComparer.OrdinalIgnoreCase);
         //TODO:同一个 appId 可能会对应 AccessToken、JsTicket 等多种 Container 情况。
 
         /// <summary>当前保留的自动重注册委托数量。</summary>
@@ -204,8 +207,59 @@ namespace Senparc.Weixin.Containers
         /// <summary>自动重注册委托容量上限。默认 10000。</summary>
         public static int MaximumRegistrationCallbackCount
         {
-            get => RegisterFuncCollection.MaximumCount;
-            set => RegisterFuncCollection.MaximumCount = value;
+            get
+            {
+                lock (RegistrationCallbackSyncRoot)
+                {
+                    return _maximumRegistrationCallbackCount;
+                }
+            }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "注册委托容量必须大于 0。");
+                }
+
+                lock (RegistrationCallbackSyncRoot)
+                {
+                    if (value < RegisterFuncCollection.Count)
+                    {
+                        throw new InvalidOperationException($"当前已有 {RegisterFuncCollection.Count} 个注册委托，不能把容量降低到 {value}。");
+                    }
+
+                    _maximumRegistrationCallbackCount = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 为 SDK 内部注册自动刷新委托，同时执行容量检查。
+        /// 保留 <see cref="RegisterFuncCollection"/> 的历史类型，以兼容外部派生容器。
+        /// </summary>
+        protected static void SetRegistrationCallback(string shortKey, Func<Task<TBag>> registerFunc)
+        {
+            if (shortKey == null)
+            {
+                throw new ArgumentNullException(nameof(shortKey));
+            }
+
+            if (registerFunc == null)
+            {
+                throw new ArgumentNullException(nameof(registerFunc));
+            }
+
+            lock (RegistrationCallbackSyncRoot)
+            {
+                if (!RegisterFuncCollection.ContainsKey(shortKey) &&
+                    RegisterFuncCollection.Count >= _maximumRegistrationCallbackCount)
+                {
+                    throw new InvalidOperationException(
+                        $"注册委托数量已达到上限 {_maximumRegistrationCallbackCount}，请先注销不再使用的账号或提高 MaximumRegistrationCallbackCount。");
+                }
+
+                RegisterFuncCollection[shortKey] = registerFunc;
+            }
         }
 
         /// <summary>注销指定账号，同时移除自动重注册委托和缓存项。</summary>

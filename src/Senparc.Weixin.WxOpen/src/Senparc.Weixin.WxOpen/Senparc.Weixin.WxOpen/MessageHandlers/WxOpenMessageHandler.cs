@@ -82,10 +82,6 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
     {
         #region 属性设置
 
-        private IResponseMessageBase _cachedResponseMessage;
-        private XDocument _cachedResponseDocument;
-        private XDocument _cachedFinalResponseDocument;
-
         /// <summary>
         /// 请求实体
         /// </summary>
@@ -99,16 +95,7 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         public new IResponseMessageBase ResponseMessage
         {
             get => base.ResponseMessage as IResponseMessageBase;
-            set
-            {
-                if (!ReferenceEquals(base.ResponseMessage, value))
-                {
-                    _cachedResponseMessage = null;
-                    _cachedResponseDocument = null;
-                    _cachedFinalResponseDocument = null;
-                }
-                base.ResponseMessage = value;
-            }
+            set => base.ResponseMessage = value;
         }
 
 
@@ -117,19 +104,9 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
             get
             {
                 var responseMessage = ResponseMessage;
-                if (responseMessage == null)
-                {
-                    return null;
-                }
-
-                if (!ReferenceEquals(_cachedResponseMessage, responseMessage))
-                {
-                    _cachedResponseMessage = responseMessage;
-                    _cachedResponseDocument = EntityHelper.ConvertEntityToXml(responseMessage as ResponseMessageBase);
-                    _cachedFinalResponseDocument = null;
-                }
-
-                return _cachedResponseDocument;
+                return responseMessage != null
+                    ? EntityHelper.ConvertEntityToXml(responseMessage as ResponseMessageBase)
+                    : null;
             }
         }
 
@@ -144,14 +121,9 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
                     return null;
                 }
 
-                if (_cachedFinalResponseDocument != null)
-                {
-                    return _cachedFinalResponseDocument;
-                }
-
                 if (!UsingEncryptMessage)
                 {
-                    return _cachedFinalResponseDocument = responseDocument;
+                    return responseDocument;
                 }
 
                 var timeStamp = SystemTime.Now.Ticks.ToString();
@@ -161,7 +133,7 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
                 string finalResponseXml = null;
                 msgCrype.EncryptResponseMsg(responseDocument.ToString().Replace("\r\n", "\n")/* 替换\r\n是为了处理iphone设备上换行bug */, timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
 
-                return _cachedFinalResponseDocument = XDocument.Parse(finalResponseXml);
+                return XDocument.Parse(finalResponseXml);
             }
         }
 

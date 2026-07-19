@@ -88,7 +88,7 @@ namespace Senparc.Weixin.Cache.Memcached
 
         public override IDictionary<string, TBag> GetAll<TBag>()
         {
-            throw new NotSupportedException("Memcached 协议不提供可靠的键枚举能力。请先检查 GetCapabilities()，或在业务侧维护索引。");
+            throw new NotImplementedException();
         }
 
         public override void UpdateContainerBag(string key, IBaseContainerBag containerBag, TimeSpan? expiry = null, bool isFullKey = false)
@@ -111,7 +111,7 @@ namespace Senparc.Weixin.Cache.Memcached
         public override Task<IDictionary<string, TBag>> GetAllAsync<TBag>()
         {
             return Task.FromException<IDictionary<string, TBag>>(
-                new NotSupportedException("Memcached 协议不提供可靠的键枚举能力。请先检查 GetCapabilities()，或在业务侧维护索引。"));
+                new NotImplementedException());
         }
 
         public override async Task UpdateContainerBagAsync(string key, IBaseContainerBag bag, TimeSpan? expiry = null, bool isFullKey = false)

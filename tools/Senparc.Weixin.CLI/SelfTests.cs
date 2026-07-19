@@ -81,6 +81,33 @@ internal static class SelfTests
             AssertThrows(() => policy.ResolveForWrite("../escape.txt"), "path traversal");
             AssertThrows(() => policy.ResolveForWrite("src/key.pem"), "key material");
 
+            var configurationDirectory = Path.Combine(root, "configuration");
+            Directory.CreateDirectory(configurationDirectory);
+            var baseConfigurationPath = Path.Combine(configurationDirectory, "appsettings.example.json");
+            var developmentConfigurationPath = Path.Combine(
+                configurationDirectory,
+                "appsettings.Development.json");
+            await File.WriteAllTextAsync(
+                baseConfigurationPath,
+                """{"Marker":"base"}""",
+                cancellationToken).ConfigureAwait(false);
+            await File.WriteAllTextAsync(
+                developmentConfigurationPath,
+                """{"Marker":"development"}""",
+                cancellationToken).ConfigureAwait(false);
+            Assert(
+                AgentKernelPlanner.BuildConfiguration(baseConfigurationPath, "Development")["Marker"]
+                    == "development",
+                "Development configuration override");
+            Assert(
+                AgentKernelPlanner.BuildConfiguration(baseConfigurationPath, null)["Marker"]
+                    == "development",
+                "local Development configuration fallback");
+            Assert(
+                AgentKernelPlanner.BuildConfiguration(baseConfigurationPath, "Production")["Marker"]
+                    == "base",
+                "Production configuration isolation");
+
             var wrongHash = new HarnessPlan
             {
                 Goal = "wrong hash",

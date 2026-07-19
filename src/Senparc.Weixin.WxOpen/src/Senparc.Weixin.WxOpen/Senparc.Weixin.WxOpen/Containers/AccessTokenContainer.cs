@@ -161,7 +161,7 @@ namespace Senparc.Weixin.WxOpen.Containers
         public static async Task RegisterAsync(string wxOpenAppId, string wxOpenAppSecret, string name = null)
         {
             //记录注册信息，RegisterFunc委托内的过程会在缓存丢失之后自动重试
-            RegisterFuncCollection[wxOpenAppId] = async () =>
+            SetRegistrationCallback(wxOpenAppId, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -177,7 +177,7 @@ namespace Senparc.Weixin.WxOpen.Containers
                 await UpdateAsync(wxOpenAppId, bag, null).ConfigureAwait(false);//第一次添加，此处已经立即更新
                 return bag;
                 //}
-            };
+            });
 
             var registerTask = RegisterFuncCollection[wxOpenAppId]();
 
@@ -229,7 +229,7 @@ namespace Senparc.Weixin.WxOpen.Containers
                 return bag;
             }
 
-            RegisterFuncCollection[wxOpenAppId] = () => RegisterCoreAsync(CancellationToken.None);
+            SetRegistrationCallback(wxOpenAppId, () => RegisterCoreAsync(CancellationToken.None));
             cancellationToken.ThrowIfCancellationRequested();
             await RegisterCoreAsync(cancellationToken).ConfigureAwait(false);
         }

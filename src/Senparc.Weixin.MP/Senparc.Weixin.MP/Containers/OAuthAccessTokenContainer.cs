@@ -152,7 +152,7 @@ namespace Senparc.Weixin.MP.Containers
         public static async Task RegisterAsync(string appId, string appSecret, string code, string name = null)
         {
             var key = BuildKey(appId, code);
-            RegisterFuncCollection[key] = async () =>
+            SetRegistrationCallback(key, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -167,7 +167,7 @@ namespace Senparc.Weixin.MP.Containers
                 await UpdateAsync(key, bag, null).ConfigureAwait(false);
                 return bag;
                 //}
-            };
+            });
 
             await RegisterFuncCollection[key]().ConfigureAwait(false);
 

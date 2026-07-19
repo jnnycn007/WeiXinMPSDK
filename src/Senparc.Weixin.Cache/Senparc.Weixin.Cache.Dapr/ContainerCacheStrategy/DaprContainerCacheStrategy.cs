@@ -141,7 +141,7 @@ namespace Senparc.Weixin.Cache.Dapr
             #endregion
 
 
-            throw new NotSupportedException("Dapr State Store 不保证提供按前缀枚举键的能力。请先检查 GetCapabilities()，或在业务侧维护索引。");
+            throw new NotImplementedException();
 
             //var baseCacheStrategy = BaseCacheStrategy();
             //var key = ContainerHelper.GetItemCacheKey(typeof(TBag), "");
@@ -173,7 +173,7 @@ namespace Senparc.Weixin.Cache.Dapr
         public override Task<IDictionary<string, TBag>> GetAllAsync<TBag>()
         {
             return Task.FromException<IDictionary<string, TBag>>(
-                new NotSupportedException("Dapr State Store 不保证提供按前缀枚举键的能力。请先检查 GetCapabilities()，或在业务侧维护索引。"));
+                new NotImplementedException());
             //var baseCacheStrategy = BaseCacheStrategy();
             //var key = ContainerHelper.GetItemCacheKey(typeof(TBag), "");
             //key = key.Substring(0, key.Length - 1);//去掉:号

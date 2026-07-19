@@ -91,7 +91,7 @@ namespace Senparc.Weixin.TenPayV3
             : this(
                 httpContext,
                 senparcWeixinSettingForTenpayV3,
-                ReadBodyAsync(httpContext, DefaultMaxBodyBytes, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult())
+                ReadBodyAsync(httpContext, null, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult())
         {
         }
 
@@ -139,11 +139,11 @@ namespace Senparc.Weixin.TenPayV3
 
         private static async Task<NotificationBody> ReadBodyAsync(
             HttpContext httpContext,
-            int maxBodyBytes,
+            int? maxBodyBytes,
             CancellationToken cancellationToken)
         {
             _ = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            if (maxBodyBytes <= 0)
+            if (maxBodyBytes.HasValue && maxBodyBytes.Value <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxBodyBytes), "请求体上限必须大于 0。");
             }
@@ -154,22 +154,29 @@ namespace Senparc.Weixin.TenPayV3
                 return NotificationBody.Empty;
             }
 
-            if (request.ContentLength > maxBodyBytes)
+            if (maxBodyBytes.HasValue && request.ContentLength > maxBodyBytes.Value)
             {
                 throw new InvalidDataException($"微信支付通知请求体超过允许上限 {maxBodyBytes} 字节。");
             }
 
-            request.EnableBuffering(bufferThreshold: 30 * 1024, bufferLimit: maxBodyBytes);
+            if (maxBodyBytes.HasValue)
+            {
+                request.EnableBuffering(bufferThreshold: 30 * 1024, bufferLimit: maxBodyBytes.Value);
+            }
+            else
+            {
+                request.EnableBuffering(bufferThreshold: 30 * 1024);
+            }
             request.Body.Position = 0;
 
             using (var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken,
                 httpContext.RequestAborted))
             using (var bodyBuffer = new MemoryStream(request.ContentLength.HasValue
-                ? (int)Math.Min(request.ContentLength.Value, maxBodyBytes)
+                ? (int)Math.Min(request.ContentLength.Value, maxBodyBytes ?? int.MaxValue)
                 : 0))
             {
-                var buffer = ArrayPool<byte>.Shared.Rent(Math.Min(81920, maxBodyBytes));
+                var buffer = ArrayPool<byte>.Shared.Rent(Math.Min(81920, maxBodyBytes ?? 81920));
                 try
                 {
                     var totalBytes = 0;
@@ -178,7 +185,7 @@ namespace Senparc.Weixin.TenPayV3
                         buffer, 0, buffer.Length, linkedCancellation.Token).ConfigureAwait(false)) > 0)
                     {
                         totalBytes += bytesRead;
-                        if (totalBytes > maxBodyBytes)
+                        if (maxBodyBytes.HasValue && totalBytes > maxBodyBytes.Value)
                         {
                             throw new InvalidDataException($"微信支付通知请求体超过允许上限 {maxBodyBytes} 字节。");
                         }

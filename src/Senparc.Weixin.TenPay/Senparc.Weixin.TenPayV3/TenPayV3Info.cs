@@ -152,6 +152,16 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="privateKey"></param>
         /// <param name="serialNumber"></param>
         /// <param name="apiV3Key"></param>
+        public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret,
+            string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber, string apiV3Key)
+            : this(appId, appSecret, mchId, key, certPath, certSecret, tenPayV3Notify, tenPayV3WxOpenNotify,
+                  privateKey, serialNumber, apiV3Key, CertType.RSA)
+        {
+        }
+
+        /// <summary>
+        /// 普通服务商微信支付 V3 参数构造函数，并显式指定证书类型。
+        /// </summary>
         public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret, 
             string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber, string apiV3Key, CertType certType)
             : this(appId, appSecret, mchId, key, certPath, certSecret, "", "", "", tenPayV3Notify, 
@@ -176,6 +186,17 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="privateKey"></param>
         /// <param name="serialNumber"></param>
         /// <param name="apiV3Key"></param>
+        public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret, string subAppId,
+            string subAppSecret, string subMchId, string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber,
+            string apiV3Key)
+            : this(appId, appSecret, mchId, key, certPath, certSecret, subAppId, subAppSecret, subMchId,
+                  tenPayV3Notify, tenPayV3WxOpenNotify, privateKey, serialNumber, apiV3Key, CertType.RSA)
+        {
+        }
+
+        /// <summary>
+        /// 服务商微信支付 V3 参数构造函数，并显式指定证书类型。
+        /// </summary>
         /// <param name="certType"></param>
         public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret, string subAppId, 
             string subAppSecret, string subMchId, string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber, 

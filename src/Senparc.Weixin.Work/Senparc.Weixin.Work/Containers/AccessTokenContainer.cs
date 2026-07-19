@@ -336,7 +336,7 @@ namespace Senparc.Weixin.Work.Containers
         {
             //记录注册信息，RegisterFunc委托内的过程会在缓存丢失之后自动重试
             var shortKey = BuildingKey(corpId, corpSecret);
-            RegisterFuncCollection[shortKey] = async () =>
+            SetRegistrationCallback(shortKey, async () =>
              {
                  //using (FlushCache.CreateInstance())
                  //{
@@ -351,7 +351,7 @@ namespace Senparc.Weixin.Work.Containers
                  await UpdateAsync(BuildingKey(corpId, corpSecret), bag, null).ConfigureAwait(false);
                  return bag;
                  //}
-             };
+             });
 
             var registerTask = RegisterFuncCollection[shortKey]();
 
@@ -414,7 +414,7 @@ namespace Senparc.Weixin.Work.Containers
                 return bag;
             }
 
-            RegisterFuncCollection[registrationKey] = () => RegisterCoreAsync(CancellationToken.None);
+            SetRegistrationCallback(registrationKey, () => RegisterCoreAsync(CancellationToken.None));
             cancellationToken.ThrowIfCancellationRequested();
             await RegisterCoreAsync(cancellationToken).ConfigureAwait(false);
         }

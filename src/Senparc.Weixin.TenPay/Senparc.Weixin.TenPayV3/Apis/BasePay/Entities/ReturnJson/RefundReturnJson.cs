@@ -138,17 +138,17 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
         /// <summary>
         /// 金额详细信息
         /// </summary>
-        public RefundAmount amount { get; set; }
+        public Amount amount { get; set; }
 
         /// <summary>
         /// 优惠退款信息
         /// </summary>
-        public RefundPromotionDetail[] promotion_detail { get; set; }
+        public Promotion_Detail[] promotion_detail { get; set; }
 
         /// <summary>
         /// 金额详细信息
         /// </summary>
-        public class RefundAmount
+        public class Amount
         {
             /// <summary>
             /// 总金额
@@ -166,7 +166,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
             /// <summary>
             /// 退款出资的账户类型及金额信息
             /// </summary>
-            public RefundFrom[] from { get; set; }
+            public From[] from { get; set; }
 
             /// <summary>
             /// 用户支付金额
@@ -214,7 +214,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
         /// <summary>
         /// 退款出资的账户类型及金额信息
         /// </summary>
-        public class RefundFrom
+        public class From
         {
             /// <summary>
             /// 出资账户类型
@@ -237,7 +237,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
         /// <summary>
         /// 优惠退款信息
         /// </summary>
-        public class RefundPromotionDetail
+        public class Promotion_Detail
         {
             /// <summary>
             /// 券或者立减优惠id
@@ -277,13 +277,13 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
             /// <summary>
             /// 单品列表信息
             /// </summary>
-            public RefundGoodsDetail[] goods_detail { get; set; }
+            public Goods_Detail[] goods_detail { get; set; }
         }
 
         /// <summary>
         /// 单品列表信息
         /// </summary>
-        public class RefundGoodsDetail
+        public class Goods_Detail
         {
             /// <summary>
             /// 商户侧商品编码
@@ -324,6 +324,11 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
             /// </summary>
             public int refund_quantity { get; set; }
         }
+
+        // 新名称作为源码兼容别名；历史名称用于保持已发布程序集签名。
+        public class RefundAmount : Amount { }
+        public class RefundFrom : From { }
+        public class RefundPromotionDetail : Promotion_Detail { }
+        public class RefundGoodsDetail : Goods_Detail { }
     }
 }
-

@@ -30,7 +30,12 @@ namespace Senparc.Weixin.MessageContexts
     public static class MessageContextSafetyOptions
     {
         /// <summary>
-        /// 显式请求无限记录时使用的值。默认参数 0 将使用安全的全局默认值。
+        /// 显式请求安全全局默认记录数时使用的值。
+        /// </summary>
+        public const int DefaultRecordCount = -2;
+
+        /// <summary>
+        /// 显式请求无限记录时使用的值。为保持历史兼容，公开构造函数参数 0 同样表示无限记录。
         /// </summary>
         public const int UnlimitedRecordCount = -1;
 
@@ -103,22 +108,24 @@ namespace Senparc.Weixin.MessageContexts
         {
             Interlocked.Increment(ref _createdHandlerCount);
 
-            if (requestedMaxRecordCount == UnlimitedRecordCount)
+            if (requestedMaxRecordCount == 0 || requestedMaxRecordCount == UnlimitedRecordCount)
             {
                 Interlocked.Increment(ref _unlimitedHandlerCount);
                 return 0;
             }
 
-            if (requestedMaxRecordCount < UnlimitedRecordCount)
+            if (requestedMaxRecordCount == DefaultRecordCount)
+            {
+                return DefaultMaxRecordCount;
+            }
+
+            if (requestedMaxRecordCount < DefaultRecordCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(requestedMaxRecordCount));
             }
 
-            var resolved = requestedMaxRecordCount == 0
-                ? DefaultMaxRecordCount
-                : requestedMaxRecordCount;
-
-            return Math.Min(resolved, MaximumRecordCount);
+            // 正数是旧 API 的显式容量，不做静默截断。
+            return requestedMaxRecordCount;
         }
     }
 }
