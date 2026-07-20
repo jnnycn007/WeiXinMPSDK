@@ -24,7 +24,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件名：TenPayNotifyHandler.cs
     文件功能描述：微信支付V3 回调请求handler
     
-    创建标识：Senparc - 20210811
+    创建标识：Senparc - 20210819
 
     修改标识：Senparc - 20210819
     修改描述：重构使用TenPaySignHelper类验证签名
@@ -44,6 +44,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260523
     修改描述：补充更新日志，完善文件头修改记录
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.5.0 新增限长、可取消的异步通知正文读取
+
 ----------------------------------------------------------------*/
 
 using Microsoft.AspNetCore.Http;
@@ -52,8 +55,10 @@ using Senparc.Weixin.Entities;
 using Senparc.Weixin.TenPayV3.Apis.Entities;
 using Senparc.Weixin.TenPayV3.Helpers;
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -64,6 +69,11 @@ namespace Senparc.Weixin.TenPayV3
     /// </summary>
     public class TenPayNotifyHandler
     {
+        /// <summary>
+        /// 默认允许的通知请求体上限（1 MiB）。
+        /// </summary>
+        public const int DefaultMaxBodyBytes = 1024 * 1024;
+
         readonly private NotifyRequest NotifyRequest;
         readonly private string Body;
 
@@ -78,9 +88,30 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="httpContext"></param>
         /// <param name="senparcWeixinSettingForTenpayV3"></param>
         public TenPayNotifyHandler(HttpContext httpContext, ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3 = null)
+            : this(
+                httpContext,
+                senparcWeixinSettingForTenpayV3,
+                ReadBodyAsync(httpContext, null, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult())
+        {
+        }
+
+        /// <summary>
+        /// 使用自定义请求体上限的兼容构造函数。新代码优先使用 <see cref="CreateAsync"/>。
+        /// </summary>
+        public TenPayNotifyHandler(HttpContext httpContext, ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3, int maxBodyBytes)
+            : this(
+                httpContext,
+                senparcWeixinSettingForTenpayV3,
+                ReadBodyAsync(httpContext, maxBodyBytes, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult())
+        {
+        }
+
+        private TenPayNotifyHandler(
+            HttpContext httpContext,
+            ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3,
+            NotificationBody notificationBody)
         {
             _ = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-
             _httpContext = httpContext;
             _tenpayV3Setting = senparcWeixinSettingForTenpayV3 ?? Senparc.Weixin.Config.SenparcWeixinSetting.TenpayV3Setting;
 
@@ -89,28 +120,102 @@ namespace Senparc.Weixin.TenPayV3
                 throw new Senparc.Weixin.Exceptions.WeixinException("没有设置证书加密类型（EncryptionType）");
             }
 
-            // 获得body
-            if (_httpContext.Request.Method == "POST"
-                || _httpContext.Request.Method == "PUT"
-                || _httpContext.Request.Method == "PATCH")
-            {
-                // 启用缓冲（允许重复读取）
-                _httpContext.Request.EnableBuffering();
-                _httpContext.Request.Body.Position = 0; // 重置流位置到起始点
+            Body = notificationBody.Body;
+            NotifyRequest = notificationBody.NotifyRequest;
+        }
 
-                using (var reader = new StreamReader(
-                    _httpContext.Request.Body,
-                    encoding: Encoding.UTF8,
-                    detectEncodingFromByteOrderMarks: false,
-                    bufferSize: 1024,
-                    leaveOpen: true)) // 关键：读取后不关闭底层流
+        /// <summary>
+        /// 异步创建通知处理器，支持请求取消并限制请求体大小。
+        /// </summary>
+        public static async Task<TenPayNotifyHandler> CreateAsync(
+            HttpContext httpContext,
+            ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3 = null,
+            int maxBodyBytes = DefaultMaxBodyBytes,
+            CancellationToken cancellationToken = default)
+        {
+            var notificationBody = await ReadBodyAsync(httpContext, maxBodyBytes, cancellationToken).ConfigureAwait(false);
+            return new TenPayNotifyHandler(httpContext, senparcWeixinSettingForTenpayV3, notificationBody);
+        }
+
+        private static async Task<NotificationBody> ReadBodyAsync(
+            HttpContext httpContext,
+            int? maxBodyBytes,
+            CancellationToken cancellationToken)
+        {
+            _ = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+            if (maxBodyBytes.HasValue && maxBodyBytes.Value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxBodyBytes), "请求体上限必须大于 0。");
+            }
+
+            var request = httpContext.Request;
+            if (request.Method != "POST" && request.Method != "PUT" && request.Method != "PATCH")
+            {
+                return NotificationBody.Empty;
+            }
+
+            if (maxBodyBytes.HasValue && request.ContentLength > maxBodyBytes.Value)
+            {
+                throw new InvalidDataException($"微信支付通知请求体超过允许上限 {maxBodyBytes} 字节。");
+            }
+
+            if (maxBodyBytes.HasValue)
+            {
+                request.EnableBuffering(bufferThreshold: 30 * 1024, bufferLimit: maxBodyBytes.Value);
+            }
+            else
+            {
+                request.EnableBuffering(bufferThreshold: 30 * 1024);
+            }
+            request.Body.Position = 0;
+
+            using (var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                httpContext.RequestAborted))
+            using (var bodyBuffer = new MemoryStream(request.ContentLength.HasValue
+                ? (int)Math.Min(request.ContentLength.Value, maxBodyBytes ?? int.MaxValue)
+                : 0))
+            {
+                var buffer = ArrayPool<byte>.Shared.Rent(Math.Min(81920, maxBodyBytes ?? 81920));
+                try
                 {
-                    Body = reader.ReadToEndAsync().GetAwaiter().GetResult();
-                    NotifyRequest = Body.GetObject<NotifyRequest>();
+                    var totalBytes = 0;
+                    int bytesRead;
+                    while ((bytesRead = await request.Body.ReadAsync(
+                        buffer, 0, buffer.Length, linkedCancellation.Token).ConfigureAwait(false)) > 0)
+                    {
+                        totalBytes += bytesRead;
+                        if (maxBodyBytes.HasValue && totalBytes > maxBodyBytes.Value)
+                        {
+                            throw new InvalidDataException($"微信支付通知请求体超过允许上限 {maxBodyBytes} 字节。");
+                        }
+
+                        await bodyBuffer.WriteAsync(buffer, 0, bytesRead, linkedCancellation.Token).ConfigureAwait(false);
+                    }
+
+                    bodyBuffer.TryGetBuffer(out var bodySegment);
+                    var body = Encoding.UTF8.GetString(bodySegment.Array, bodySegment.Offset, totalBytes);
+                    return new NotificationBody(body, body.GetObject<NotifyRequest>());
                 }
-                
-                // 重置流位置，供后续中间件/控制器读取
-                _httpContext.Request.Body.Position = 0;
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                    request.Body.Position = 0;
+                }
+            }
+        }
+
+        private sealed class NotificationBody
+        {
+            internal static readonly NotificationBody Empty = new NotificationBody(null, null);
+
+            internal string Body { get; }
+            internal NotifyRequest NotifyRequest { get; }
+
+            internal NotificationBody(string body, NotifyRequest notifyRequest)
+            {
+                Body = body;
+                NotifyRequest = notifyRequest;
             }
         }
 
@@ -213,4 +318,3 @@ namespace Senparc.Weixin.TenPayV3
         }
     }
 }
-

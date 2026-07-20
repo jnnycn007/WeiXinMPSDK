@@ -33,6 +33,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
     public class GetTest
     {
         [TestMethod]
+        [TestCategory("Live")]
         public void DownloadTest()
         {
             var url = "https://sdk.weixin.senparc.com/images/v2/ewm_01.png";
@@ -52,6 +53,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
         }
 
         [TestMethod]
+        [TestCategory("Live")]
         public void GetJsonTest()
         {
             return; //已经通过，但需要连接远程测试，太耗时，常规测试时暂时忽略。 TODO：迁移到 CO2NET
@@ -86,6 +88,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
         }
 
         [TestMethod]
+        [TestCategory("Live")]
         public void GetJsonAsyncTest()
         {
             //return;//已经通过，但需要连接远程测试，太耗时，常规测试时暂时忽略。
@@ -121,4 +124,3 @@ namespace Senparc.Weixin.HttpUtility.Tests
         }
     }
 }
-

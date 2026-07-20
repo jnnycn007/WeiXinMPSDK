@@ -34,9 +34,12 @@ namespace Senparc.WeixinTests.NetCore3.Entities.TemplateMessage
   ""Key4"": {
     ""value"": ""this is value4""
   }
-}".Replace("\n ","\r\n ").Replace("\n}","\r\n}");
+}";
 
-            Assert.AreEqual(exceptStr, json);
+            Assert.AreEqual(NormalizeLineEndings(exceptStr), NormalizeLineEndings(json));
         }
+
+        private static string NormalizeLineEndings(string value) =>
+            value.Replace("\r\n", "\n", StringComparison.Ordinal);
     }
 }

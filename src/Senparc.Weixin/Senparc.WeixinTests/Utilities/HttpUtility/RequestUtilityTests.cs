@@ -46,6 +46,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
 
 
         [TestMethod]
+        [TestCategory("Integration")]
         public void PostTest()
         {
             var data = "Jeffrey";
@@ -66,6 +67,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
 
 
         [TestMethod]
+        [TestCategory("Integration")]
         public void SenparcHttpResponseTest()
         {
             var data = "Jeffrey";

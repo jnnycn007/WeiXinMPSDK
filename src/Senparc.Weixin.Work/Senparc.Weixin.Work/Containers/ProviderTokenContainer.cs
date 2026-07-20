@@ -231,7 +231,7 @@ namespace Senparc.Weixin.Work.Containers
         public static async Task RegisterAsync(string corpId, string corpSecret, string name = null)
         {
             var shortKey = AccessTokenContainer.BuildingKey(corpId, corpSecret);
-            RegisterFuncCollection[shortKey] = async () =>
+            SetRegistrationCallback(shortKey, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -246,7 +246,7 @@ namespace Senparc.Weixin.Work.Containers
                 await UpdateAsync(AccessTokenContainer.BuildingKey(corpId, corpSecret), bag, null).ConfigureAwait(false);
                 return bag;
                 //}
-            };
+            });
             await RegisterFuncCollection[shortKey]().ConfigureAwait(false);
 
             if (!name.IsNullOrEmpty())

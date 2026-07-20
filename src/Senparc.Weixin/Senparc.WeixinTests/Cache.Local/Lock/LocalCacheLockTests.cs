@@ -33,6 +33,7 @@ namespace Senparc.Weixin.Cache.Tests
     public class LocalCacheLockTests
     {
         [TestMethod()]
+        [TestCategory("Integration")]
         public void LocalCacheLockTest()
         {
             //实际上stragety在LocalCacheLock内部暂时没有用到，

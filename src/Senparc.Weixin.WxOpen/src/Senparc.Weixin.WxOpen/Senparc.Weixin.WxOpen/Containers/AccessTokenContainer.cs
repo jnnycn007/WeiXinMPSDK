@@ -36,6 +36,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260718
     修改描述：v3.27.3 修复同步注册竞态，并在分布式锁内重新读取 AccessToken 状态
 
+    修改标识：Senparc - 20260718
+    修改描述：v3.28.0 新增外部凭据提供器注册入口并保护重注册凭据
+
 ----------------------------------------------------------------*/
 
 using Senparc.CO2NET.Extensions;
@@ -47,6 +50,7 @@ using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.Utilities.WeixinUtility;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Senparc.Weixin.WxOpen.Containers
 {
@@ -157,7 +161,7 @@ namespace Senparc.Weixin.WxOpen.Containers
         public static async Task RegisterAsync(string wxOpenAppId, string wxOpenAppSecret, string name = null)
         {
             //记录注册信息，RegisterFunc委托内的过程会在缓存丢失之后自动重试
-            RegisterFuncCollection[wxOpenAppId] = async () =>
+            SetRegistrationCallback(wxOpenAppId, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -173,7 +177,7 @@ namespace Senparc.Weixin.WxOpen.Containers
                 await UpdateAsync(wxOpenAppId, bag, null).ConfigureAwait(false);//第一次添加，此处已经立即更新
                 return bag;
                 //}
-            };
+            });
 
             var registerTask = RegisterFuncCollection[wxOpenAppId]();
 
@@ -184,6 +188,50 @@ namespace Senparc.Weixin.WxOpen.Containers
             }
 
             await Task.WhenAll(new[] { registerTask }).ConfigureAwait(false);//等待所有任务完成
+        }
+
+        /// <summary>
+        /// 使用外部凭据提供器注册小程序 AccessToken，自动重注册委托不长期捕获明文 AppSecret。
+        /// </summary>
+        public static async Task RegisterWithCredentialProviderAsync(
+            string wxOpenAppId,
+            IWeixinCredentialProvider credentialProvider,
+            string name = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(wxOpenAppId))
+            {
+                throw new ArgumentException("AppId 不能为空。", nameof(wxOpenAppId));
+            }
+
+            if (credentialProvider == null)
+            {
+                throw new ArgumentNullException(nameof(credentialProvider));
+            }
+
+            async Task<AccessTokenBag> RegisterCoreAsync(CancellationToken token)
+            {
+                var secret = await credentialProvider.GetSecretAsync(wxOpenAppId, token).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(secret))
+                {
+                    throw new InvalidOperationException("凭据提供器返回了空 AppSecret。");
+                }
+
+                var bag = new AccessTokenBag
+                {
+                    Name = name,
+                    WxOpenAppId = wxOpenAppId,
+                    WxOpenAppSecret = secret,
+                    AccessTokenExpireTime = DateTimeOffset.MinValue,
+                    AccessTokenResult = new AccessTokenResult()
+                };
+                await UpdateAsync(wxOpenAppId, bag, null).ConfigureAwait(false);
+                return bag;
+            }
+
+            SetRegistrationCallback(wxOpenAppId, () => RegisterCoreAsync(CancellationToken.None));
+            cancellationToken.ThrowIfCancellationRequested();
+            await RegisterCoreAsync(cancellationToken).ConfigureAwait(false);
         }
 
 

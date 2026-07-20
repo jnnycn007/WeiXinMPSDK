@@ -1,7 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2026 Senparc
+
+    文件名：Startup.cs
+    文件功能描述：ASP.NET Core 示例应用启动与服务配置
+
+
+    创建标识：Senparc - 20190924
+
+    修改标识：Senparc - 20260718
+    修改描述：v10.1.0.0 切换示例 AI 服务注册到 AgentKernel
+
+----------------------------------------------------------------*/
+
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
-using Senparc.AI.Kernel;
+using Senparc.AI.AgentKernel;
 using Senparc.CO2NET;
 using Senparc.CO2NET.AspNet;
 using Senparc.CO2NET.Cache;

@@ -25,11 +25,11 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：通过CommonJsonSend中的方法调用接口
 
 
-    创建标识：Senparc - 20151012
-           
+    创建标识：Senparc - 20131031
+
     修改标识：Senparc - 20170606
     修改描述：v14.4.11 完善CommonJsonSend.SendAsync()方法参数
-  
+
     修改标识：Senparc - 20190129
     修改描述：v6.3.8 修复 CommonJsonSend.Send() 方法中的异常请求结果自动抛出 
 
@@ -44,6 +44,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20231026
     修改描述：v6.16.6 优化 postFailAction 中的异常记录
+
+    修改标识：Senparc - 20260718
+    修改描述：v6.24.0 移除 JSON 请求的额外 UTF-8 整体缓冲
 
 ----------------------------------------------------------------*/
 
@@ -178,8 +181,11 @@ namespace Senparc.Weixin.CommonAPIs
                         var jsonString = SerializerHelper.GetJsonString(data, jsonSetting);
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            var bytes = Encoding.UTF8.GetBytes(jsonString);
-                            ms.Write(bytes, 0, bytes.Length);
+                            using (var writer = new StreamWriter(ms, new UTF8Encoding(false), 1024, true))
+                            {
+                                writer.Write(jsonString);
+                                writer.Flush();
+                            }
                             ms.Seek(0, SeekOrigin.Begin);
 
                             WeixinTrace.SendApiPostDataLog(url, jsonString);//记录Post的Json数据
@@ -254,8 +260,11 @@ namespace Senparc.Weixin.CommonAPIs
                         var jsonString = SerializerHelper.GetJsonString(data, jsonSetting);
                         using (MemoryStream ms = new MemoryStream())
                         {
-                            var bytes = Encoding.UTF8.GetBytes(jsonString);
-                            await ms.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+                            using (var writer = new StreamWriter(ms, new UTF8Encoding(false), 1024, true))
+                            {
+                                await writer.WriteAsync(jsonString).ConfigureAwait(false);
+                                await writer.FlushAsync().ConfigureAwait(false);
+                            }
                             ms.Seek(0, SeekOrigin.Begin);
 
                             WeixinTrace.SendApiPostDataLog(url, jsonString);//记录Post的Json数据
@@ -281,4 +290,3 @@ namespace Senparc.Weixin.CommonAPIs
         #endregion
     }
 }
-

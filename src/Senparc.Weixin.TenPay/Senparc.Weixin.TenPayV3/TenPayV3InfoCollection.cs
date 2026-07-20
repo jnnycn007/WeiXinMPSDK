@@ -44,11 +44,15 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260718
     修改描述：v2.4.1 为商户配置集合增加线程安全访问
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.5.0 保持商户配置集合线程安全并适配公钥刷新
+
 ----------------------------------------------------------------*/
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 #if NETSTANDARD2_0 || NETSTANDARD2_1
 using Microsoft.Extensions.DependencyInjection;
 #endif
@@ -104,10 +108,15 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="senparcWeixinSettingForTenpayV3"></param>
         /// <param name="tenpaySerialNumber"></param>
         /// <returns></returns>
-        public static async Task<string> GetAPIv3PublicKeyAsync(ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3, string tenpaySerialNumber)
+        public static Task<string> GetAPIv3PublicKeyAsync(ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3, string tenpaySerialNumber)
+        {
+            return GetAPIv3PublicKeyAsync(senparcWeixinSettingForTenpayV3, tenpaySerialNumber, CancellationToken.None);
+        }
+
+        public static async Task<string> GetAPIv3PublicKeyAsync(ISenparcWeixinSettingForTenpayV3 senparcWeixinSettingForTenpayV3, string tenpaySerialNumber, CancellationToken cancellationToken)
         {
             var tenpayV3InfoKey = TenPayHelper.GetRegisterKey(senparcWeixinSettingForTenpayV3.TenPayV3_MchId, senparcWeixinSettingForTenpayV3.TenPayV3_SubMchId);
-            var pubKey = await Data[tenpayV3InfoKey].GetPublicKeyAsync(tenpaySerialNumber, senparcWeixinSettingForTenpayV3);
+            var pubKey = await Data[tenpayV3InfoKey].GetPublicKeyAsync(tenpaySerialNumber, senparcWeixinSettingForTenpayV3, cancellationToken).ConfigureAwait(false);
             return pubKey;
         }
 

@@ -1,4 +1,18 @@
-﻿#region Apache License Version 2.0
+﻿/*----------------------------------------------------------------
+    Copyright (C) 2026 Senparc
+
+    文件名：BaseContainerCacheStrategy.cs
+    文件功能描述：容器缓存策略抽象基类与能力访问入口
+
+
+    创建标识：Senparc - 20180614
+
+    修改标识：Senparc - 20260718
+    修改描述：v6.24.0 新增缓存能力检测与有界异步分页入口
+
+----------------------------------------------------------------*/
+
+#region Apache License Version 2.0
 /*----------------------------------------------------------------
 
 Copyright 2026 Jeffrey Su & Suzhou Senparc Network Technology Co.,Ltd.
@@ -46,6 +60,14 @@ namespace Senparc.Weixin.Cache
     /// </summary>
     public abstract class BaseContainerCacheStrategy : IContainerCacheStrategy
     {
+        /// <summary>
+        /// 当前后端支持的可选能力。不能枚举键的后端应重写为 <see cref="ContainerCacheCapabilities.None"/>。
+        /// </summary>
+        public virtual ContainerCacheCapabilities Capabilities =>
+            ContainerCacheCapabilities.Enumeration |
+            ContainerCacheCapabilities.AsyncEnumeration |
+            ContainerCacheCapabilities.Paging;
+
         #region IDomainExtensionCacheStrategy 成员
         public abstract ICacheStrategyDomain CacheStrategyDomain { get; }
 
@@ -143,4 +165,3 @@ namespace Senparc.Weixin.Cache
         #endregion
     }
 }
-

@@ -5,17 +5,19 @@
     文件功能描述：按个人信息隔离的 Chat 缓存
     
     
-    创建标识：Senparc - 20240524
+    创建标识：Senparc - 20240525
 
     修改标识：Wang Qian - 20250728
     修改描述：为长对话模式的支持新增了LastStoredMemory、LastStoredPrompt、UseLongChat属性
 
+    修改标识：Senparc - 20260718
+    修改描述：v3.1.0 迁移聊天历史到 Microsoft.Extensions.AI 消息模型
+
 ----------------------------------------------------------------*/
 
-using Microsoft.SemanticKernel.ChatCompletion;
-using Senparc.AI.Kernel.Handlers;
+using Microsoft.Extensions.AI;
+using AuthorRole = Microsoft.Extensions.AI.ChatRole;
 using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Senparc.Weixin.MP.Sample.CommonService.AI.MessageHandlers
 {
@@ -66,27 +68,28 @@ namespace Senparc.Weixin.MP.Sample.CommonService.AI.MessageHandlers
             UseLongChat = false;
         }
 
-        public ChatHistory GetChatHistory()
+        public List<ChatMessage> GetChatHistory()
         {
-            var history = new ChatHistory();
+            var history = new List<ChatMessage>();
             foreach (var item in History)
             {
-                history.AddMessage(item.Role, item.Content);
+                history.Add(new ChatMessage(item.Role, item.Content));
             }
             return history;
         }
 
-        public void SetChatHistory(ChatHistory chatHistory)
+        public void SetChatHistory(IEnumerable<ChatMessage> chatHistory)
         {
             if (chatHistory == null)
             {
                 ClearHistory();
+                return;
             }
 
             History = new List<WeixinAiChatHistory>();
             foreach (var message in chatHistory)
             {
-                History.Add(new WeixinAiChatHistory(message.Role, message.Content));
+                History.Add(new WeixinAiChatHistory(message.Role, message.Text));
             }
         }
 
@@ -146,4 +149,3 @@ namespace Senparc.Weixin.MP.Sample.CommonService.AI.MessageHandlers
     }
     
 }
-

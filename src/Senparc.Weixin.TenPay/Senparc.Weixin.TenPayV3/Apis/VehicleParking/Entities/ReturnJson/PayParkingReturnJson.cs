@@ -64,7 +64,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
         /// <param name="payer">支付者信息 <para>支付者信息</para></param>
         /// <param name="amount">订单金额信息 <para>订单金额信息</para></param>
         /// <param name="promotion_detail">优惠信息 <para>优惠信息</para><para>可为null</para></param>
-        public PayParkingReturnJson(string appid, string sp_mchid, string description, string create_time, string out_trade_no, string transaction_id, string trade_state, string trade_state_description, string success_time, string bank_type, string user_repaid, string attach, string trade_scene, Parking_Info parking_info, PayParkingPayer payer, PayParkingAmount amount, PayParkingPromotionDetail[] promotion_detail)
+        public PayParkingReturnJson(string appid, string sp_mchid, string description, string create_time, string out_trade_no, string transaction_id, string trade_state, string trade_state_description, string success_time, string bank_type, string user_repaid, string attach, string trade_scene, Parking_Info parking_info, Payer payer, Amount amount, Promotion_Detail[] promotion_detail)
         {
             this.appid = appid;
             this.sp_mchid = sp_mchid;
@@ -200,20 +200,20 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
         /// 支付者信息
         /// <para>支付者信息</para>
         /// </summary>
-        public PayParkingPayer payer { get; set; }
+        public Payer payer { get; set; }
 
         /// <summary>
         /// 订单金额信息
         /// <para>订单金额信息</para>
         /// </summary>
-        public PayParkingAmount amount { get; set; }
+        public Amount amount { get; set; }
 
         /// <summary>
         /// 优惠信息
         /// <para>优惠信息</para>
         /// <para>可为null</para>
         /// </summary>
-        public PayParkingPromotionDetail[] promotion_detail { get; set; }
+        public Promotion_Detail[] promotion_detail { get; set; }
 
         #region 子数据类型
         public class Parking_Info
@@ -307,14 +307,14 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
 
         }
 
-        public class PayParkingPayer
+        public class Payer
         {
 
             /// <summary>
             /// 含参构造函数
             /// </summary>
             /// <param name="openid">用户在appid下的标识 <para>用户在appid下的唯一标识</para><para>示例值：oUpF8uMuAJOM2pxb1Q</para></param>
-            public PayParkingPayer(string openid)
+            public Payer(string openid)
             {
                 this.openid = openid;
             }
@@ -322,7 +322,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
             /// <summary>
             /// 无参构造函数
             /// </summary>
-            public PayParkingPayer()
+            public Payer()
             {
             }
 
@@ -335,7 +335,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
 
         }
 
-        public class PayParkingAmount
+        public class Amount
         {
 
             /// <summary>
@@ -345,7 +345,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
             /// <param name="currency">货币类型 <para>符合ISO4217标准的三位字母代码，目前只支持人民币：CNY</para><para>示例值：CNY</para><para>可为null</para></param>
             /// <param name="payer_total">用户实际支付金额 <para>用户实际支付金额，单位为分，只能为整数</para><para>示例值：100</para><para>可为null</para></param>
             /// <param name="discount_total">折扣 <para>订单折扣</para><para>示例值：100</para><para>可为null</para></param>
-            public PayParkingAmount(int total, string currency, int payer_total, int discount_total)
+            public Amount(int total, string currency, int payer_total, int discount_total)
             {
                 this.total = total;
                 this.currency = currency;
@@ -356,7 +356,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
             /// <summary>
             /// 无参构造函数
             /// </summary>
-            public PayParkingAmount()
+            public Amount()
             {
             }
 
@@ -393,7 +393,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
 
         }
 
-        public class PayParkingPromotionDetail
+        public class Promotion_Detail
         {
 
             /// <summary>
@@ -409,7 +409,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
             /// <param name="merchant_contribute">商户出资 <para>特指商户自己创建的优惠，出资金额等于本项优惠总金额，单位为分</para><para>示例值：1</para><para>可为null</para></param>
             /// <param name="other_contribute">其他出资 <para>其他出资方出资金额，单位为分</para><para>示例值：1</para><para>可为null</para></param>
             /// <param name="currency">优惠币种 <para>CNY：人民币，境内商户号仅支持人民币。</para><para>示例值：CNY</para><para>可为null</para></param>
-            public PayParkingPromotionDetail(string coupon_id, string name, string scope, string type, string stock_id, int amount, int wechatpay_contribute, int merchant_contribute, int other_contribute, string currency)
+            public Promotion_Detail(string coupon_id, string name, string scope, string type, string stock_id, int amount, int wechatpay_contribute, int merchant_contribute, int other_contribute, string currency)
             {
                 this.coupon_id = coupon_id;
                 this.name = name;
@@ -426,7 +426,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
             /// <summary>
             /// 无参构造函数
             /// </summary>
-            public PayParkingPromotionDetail()
+            public Promotion_Detail()
             {
             }
 
@@ -510,10 +510,32 @@ namespace Senparc.Weixin.TenPayV3.Apis.VehicleParking
 
         }
 
+        // 新名称作为源码兼容别名；历史名称用于保持已发布程序集签名。
+        public class PayParkingPayer : Payer
+        {
+            public PayParkingPayer() { }
+            public PayParkingPayer(string openid) : base(openid) { }
+        }
+
+        public class PayParkingAmount : Amount
+        {
+            public PayParkingAmount() { }
+            public PayParkingAmount(int total, string currency, int payer_total, int discount_total)
+                : base(total, currency, payer_total, discount_total) { }
+        }
+
+        public class PayParkingPromotionDetail : Promotion_Detail
+        {
+            public PayParkingPromotionDetail() { }
+            public PayParkingPromotionDetail(string coupon_id, string name, string scope, string type, string stock_id,
+                int amount, int wechatpay_contribute, int merchant_contribute, int other_contribute, string currency)
+                : base(coupon_id, name, scope, type, stock_id, amount, wechatpay_contribute,
+                      merchant_contribute, other_contribute, currency) { }
+        }
+
 
         #endregion
     }
 
 
 }
-

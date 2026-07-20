@@ -7,6 +7,7 @@ namespace Senparc.WeixinTests.vs2017.CommonApis
     public class CommonJsonSendTests : BaseTest
     {
         [TestMethod]
+        [TestCategory("Live")]
         public void SendThrowTest()
         {
             var appIdOrFackAccessToken = base._senparcWeixinSetting.WeixinAppId;// "22_q1nIlrqQ1brYqvp-8xPV3eIWWSJ9LU_qCxs3AaTMVjv74WyD1XDovWi4SkMX6xfykOCMoobaVpzu-lspCsCWIo5u6DGw31tS3ZmFw4q7wEDkXOmBaTtCeQuhlvhsalkenoRCKTLckTnVCkXbTWZlCJANQT1";//错误的AccessToken

@@ -32,12 +32,15 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20211225
     修改描述：v0.5.2 发布版本删除调试代码
-    
+
     修改标识：mojinxun - 20250618
     修改描述：v2.1.0 兼容微信平台证书和微信支付公钥 / PR #3144
 
     修改标识：Senparc - 20260718
     修改描述：v2.4.1 复用 HttpClient 并按请求隔离超时与资源释放
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.5.0 复用序列化设置并支持请求取消与响应头优先读取
 
 ----------------------------------------------------------------*/
 
@@ -67,6 +70,10 @@ namespace Senparc.Weixin.TenPayV3
     /// </summary>
     public class TenPayApiRequest
     {
+        private static readonly Newtonsoft.Json.JsonSerializerSettings RequestJsonSerializerSettings = new()
+        {
+            NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore
+        };
         private static readonly ConditionalWeakTable<ISenparcWeixinSettingForTenpayV3, Lazy<HttpClient>> HttpClients = new();
         private static readonly ConditionalWeakTable<Action<HttpClient>, ConditionalWeakTable<ISenparcWeixinSettingForTenpayV3, Lazy<HttpClient>>> CustomHttpClients = new();
 
@@ -136,7 +143,23 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="requestMethod"></param>
         /// <param name="checkDataNotNull">非 GET 请求情况下，是否强制检查 data 参数不能为 null，默认为 true</param>
         /// <returns>响应对象由调用方负责释放。</returns>
-        public async Task<HttpResponseMessage> GetHttpResponseMessageAsync(string url, object data, int timeOut = Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkDataNotNull = true)
+        public Task<HttpResponseMessage> GetHttpResponseMessageAsync(string url, object data, int timeOut = Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkDataNotNull = true)
+        {
+            return GetHttpResponseMessageAsync(url, data, CancellationToken.None, HttpCompletionOption.ResponseContentRead, timeOut, requestMethod, checkDataNotNull);
+        }
+
+        /// <summary>
+        /// 获取 HttpResponseMessage 对象，并支持调用方取消及流式响应。
+        /// </summary>
+        /// <returns>响应对象由调用方负责释放。</returns>
+        public async Task<HttpResponseMessage> GetHttpResponseMessageAsync(
+            string url,
+            object data,
+            CancellationToken cancellationToken,
+            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
+            int timeOut = Config.TIME_OUT,
+            ApiRequestMethod requestMethod = ApiRequestMethod.POST,
+            bool checkDataNotNull = true)
         {
             if (timeOut <= 0 && timeOut != Timeout.Infinite)
             {
@@ -160,7 +183,7 @@ namespace Senparc.Weixin.TenPayV3
                     }
 
                     string jsonString = data != null
-                        ? data.ToJson(false, new Newtonsoft.Json.JsonSerializerSettings() { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore })
+                        ? data.ToJson(false, RequestJsonSerializerSettings)
                         : "";
                     WeixinTrace.SendApiPostDataLog(url, jsonString);
                     request.Content = new StringContent(jsonString, Encoding.UTF8, mediaType: "application/json");
@@ -169,13 +192,13 @@ namespace Senparc.Weixin.TenPayV3
                     throw new ArgumentOutOfRangeException(nameof(requestMethod));
             }
 
-            using var timeoutCancellationTokenSource = new CancellationTokenSource();
+            using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             if (timeOut != Timeout.Infinite)
             {
                 timeoutCancellationTokenSource.CancelAfter(timeOut);
             }
 
-            return await _client.Value.SendAsync(request, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
+            return await _client.Value.SendAsync(request, completionOption, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
         private static HttpMethod GetHttpMethod(ApiRequestMethod requestMethod)
@@ -208,14 +231,24 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="checkSign"></param>
         /// <param name="createDefaultInstance"></param>
         /// <returns></returns>
-        public async Task<T> RequestAsync<T>(string url, object data, int timeOut = Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
+        public Task<T> RequestAsync<T>(string url, object data, int timeOut = Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
+            where T : ReturnJsonBase, new()
+        {
+            return RequestAsync(url, data, CancellationToken.None, timeOut, requestMethod, checkSign, createDefaultInstance);
+        }
+
+        /// <summary>
+        /// 请求参数，获取结果，并支持调用方取消。
+        /// </summary>
+        public async Task<T> RequestAsync<T>(string url, object data, CancellationToken cancellationToken, int timeOut = Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
             where T : ReturnJsonBase, new()
         {
             T result = null;
 
             try
             {
-                using HttpResponseMessage responseMessage = await GetHttpResponseMessageAsync(url, data, timeOut, requestMethod);
+                using HttpResponseMessage responseMessage = await GetHttpResponseMessageAsync(
+                    url, data, cancellationToken, HttpCompletionOption.ResponseContentRead, timeOut, requestMethod).ConfigureAwait(false);
 
                 //获取响应结果
                 string content = await responseMessage.Content.ReadAsStringAsync();//TODO:如果不正确也要返回详情
@@ -250,7 +283,7 @@ namespace Senparc.Weixin.TenPayV3
                         {
                             try
                             {
-                                var pubKey = await TenPayV3InfoCollection.GetAPIv3PublicKeyAsync(this._tenpayV3Setting, wechatpaySerial);
+                                var pubKey = await TenPayV3InfoCollection.GetAPIv3PublicKeyAsync(this._tenpayV3Setting, wechatpaySerial, cancellationToken).ConfigureAwait(false);
                                 if (this._tenpayV3Setting.EncryptionType == CertType.SM)
                                 {
                                     byte[] pubKeyBytes = Convert.FromBase64String(pubKey);
@@ -283,6 +316,10 @@ namespace Senparc.Weixin.TenPayV3
                 result.ResultCode = resultCode;
 
                 return result;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

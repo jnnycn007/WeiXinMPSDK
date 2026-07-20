@@ -33,6 +33,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260718
     修改描述：v2.4.1 隔离请求头与超时控制并完善响应资源释放
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.5.0 为支付请求传播取消并确定性释放响应资源
+
 ----------------------------------------------------------------*/
 
 using Client.TenPayHttpClient.Signer;
@@ -107,6 +110,10 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
     public class TenPayHttpClient
     {
+        private static readonly Newtonsoft.Json.JsonSerializerSettings RequestJsonSerializerSettings = new()
+        {
+            NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore
+        };
         private readonly SenparcHttpClient _httpClient;
         private ISenparcWeixinSettingForTenpayV3 _tenpayV3Setting;
         private readonly HttpClient _client;
@@ -131,7 +138,13 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
         }
 
-        public async Task<T> SendAsync<T>(string url, object data, int timeOut = Senparc.Weixin.Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
+        public Task<T> SendAsync<T>(string url, object data, int timeOut = Senparc.Weixin.Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
+                   where T : ReturnJsonBase/*, new()*/
+        {
+            return SendAsync(url, data, CancellationToken.None, timeOut, requestMethod, checkSign, createDefaultInstance);
+        }
+
+        public async Task<T> SendAsync<T>(string url, object data, CancellationToken cancellationToken, int timeOut = Senparc.Weixin.Config.TIME_OUT, ApiRequestMethod requestMethod = ApiRequestMethod.POST, bool checkSign = true, Func<T> createDefaultInstance = null)
                    where T : ReturnJsonBase/*, new()*/
         {
             T result = null;
@@ -149,7 +162,7 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
                 //设置请求 Json 字符串
                 string jsonString = data != null
-                    ? data.ToJson(false, new Newtonsoft.Json.JsonSerializerSettings() { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore })
+                    ? data.ToJson(false, RequestJsonSerializerSettings)
                     : "";
                 WeixinTrace.SendApiPostDataLog(url, jsonString); //记录Post的Json数据
                 request.Content = new StringContent(jsonString, Encoding.UTF8, mediaType: "application/json");
@@ -159,7 +172,7 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
                 request.Headers.Add("Authorization", $"WECHATPAY2-{_signer.GetAlgorithm()} {authorization}");
 
                 // 发送请求
-                using var timeoutCancellationTokenSource = new CancellationTokenSource();
+                using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 if (timeOut != Timeout.Infinite)
                 {
                     timeoutCancellationTokenSource.CancelAfter(timeOut);
@@ -182,7 +195,7 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
                     if (checkSign)
                     {
-                        result.VerifySignSuccess = await VerifyResponseMessage(responseMessage, content);
+                        result.VerifySignSuccess = await VerifyResponseMessage(responseMessage, content, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 else
@@ -193,6 +206,10 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
                 result.ResultCode = resutlCode;
 
                 return result;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -253,7 +270,15 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
             return $"mchid=\"{_tenpayV3Setting.TenPayV3_MchId}\",nonce_str=\"{nonce}\",timestamp=\"{timestamp}\",serial_no=\"{_tenpayV3Setting.TenPayV3_SerialNumber}\",signature=\"{signature}\"";
         }
 
-        protected async Task<bool> VerifyResponseMessage(HttpResponseMessage responseMessage, string content)
+        /// <summary>
+        /// 验证响应签名。保留历史二参数签名，供已编译的派生类型继续调用。
+        /// </summary>
+        protected Task<bool> VerifyResponseMessage(HttpResponseMessage responseMessage, string content)
+        {
+            return VerifyResponseMessage(responseMessage, content, CancellationToken.None);
+        }
+
+        protected async Task<bool> VerifyResponseMessage(HttpResponseMessage responseMessage, string content, CancellationToken cancellationToken)
         {
             var wechatpayTimestamp = responseMessage.Headers.GetValues("Wechatpay-Timestamp").First();
             var wechatpayNonce = responseMessage.Headers.GetValues("Wechatpay-Nonce").First();
@@ -262,7 +287,7 @@ namespace Senparc.Weixin.TenPayV3.TenPayHttpClient
 
             try
             {
-                var pubKey = await TenPayV3InfoCollection.GetAPIv3PublicKeyAsync(this._tenpayV3Setting, wechatpaySerial);
+                var pubKey = await TenPayV3InfoCollection.GetAPIv3PublicKeyAsync(this._tenpayV3Setting, wechatpaySerial, cancellationToken).ConfigureAwait(false);
                 return _verifier.Verify(wechatpayTimestamp, wechatpayNonce, wechatpaySignatureBase64, content, pubKey, this._tenpayV3Setting.TenPayV3_TenPayPubKeyEnable);
             }
             catch (Exception ex)

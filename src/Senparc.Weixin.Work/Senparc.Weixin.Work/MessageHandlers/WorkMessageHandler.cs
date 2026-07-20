@@ -5,14 +5,14 @@
     文件功能描述：企业号请求的集中处理方法
     
     
-    创建标识：Senparc - 20150313
-    
+    创建标识：Senparc - 20141006
+
     修改标识：Senparc - 20150313
     修改描述：整理接口
-    
+
     修改标识：Senparc - 20150507
     修改描述：添加 事件 异步任务完成事件推送
- 
+
     修改标识：Senparc - 20160802
     修改描述：将其AgentID类型改为int?
 
@@ -32,7 +32,7 @@
 
     修改标识：Senparc - 20181117
     修改描述：v3.2.0 Execute() 重写方法名称改为 BuildResponseMessage()
-    
+
     修改标识：Senparc - 20181226
     修改描述：v3.3.2 修改 DateTime 为 DateTimeOffset
 
@@ -56,10 +56,10 @@
 
     修改标识：WangDrama - 20210630
     修改描述：v3.9.600 添加 RequestMessageEvent_Change_External_Chat_Base 事件中 ChangeType 的判断
-    
+
     修改标识：Senparc - 20210324
     修改描述：v3.14.6 添加：审批申请状态变化回调通知
-    
+
     修改标识：ccccccmd - 20220227
     修改描述：v3.14.10 添加异步方法
 
@@ -68,7 +68,7 @@
 
     修改标识：XiaoPoTian - 20231119
     修改描述：v3.18.1 添加 RequestMessageEvent_Change_External_Tag_Base 事件中 ChangeType 的判断
-    
+
     修改标识：IcedMango - 20240229
     修改描述：添加: 企业微信会话存档-产生会话回调事件
 
@@ -80,8 +80,12 @@
 
     修改标识：Senparc - 20251203
     修改描述：添加: 微信客服消息与事件回调通知（KF_MSG_OR_EVENT）事件处理方法
+
     修改标识：Senparc - 20260523
     修改描述：补充更新日志，完善文件头修改记录
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.32.0 限制消息上下文容量并缓存响应 XML
 
 ----------------------------------------------------------------*/
 
@@ -90,6 +94,7 @@ using System.IO;
 using System.Xml.Linq;
 using Senparc.NeuChar.Context;
 using Senparc.Weixin.Exceptions;
+using Senparc.Weixin.MessageContexts;
 using Senparc.NeuChar.MessageHandlers;
 using Senparc.Weixin.Work.Entities;
 using Senparc.Weixin.Work.Helpers;
@@ -123,11 +128,10 @@ namespace Senparc.Weixin.Work.MessageHandlers
         {
             get
             {
-                if (ResponseMessage == null)
-                {
-                    return null;
-                }
-                return EntityHelper.ConvertEntityToXml(ResponseMessage as WorkResponseMessageBase);
+                var responseMessage = ResponseMessage;
+                return responseMessage != null
+                    ? EntityHelper.ConvertEntityToXml(responseMessage as WorkResponseMessageBase)
+                    : null;
             }
         }
 
@@ -139,7 +143,8 @@ namespace Senparc.Weixin.Work.MessageHandlers
         {
             get
             {
-                if (ResponseDocument == null)
+                var responseDocument = ResponseDocument;
+                if (responseDocument == null)
                 {
                     return null;
                 }
@@ -149,7 +154,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
 
                 WXBizMsgCrypt msgCrype = new WXBizMsgCrypt(_postModel.Token, _postModel.EncodingAESKey, _postModel.CorpId);
                 string finalResponseXml = null;
-                msgCrype.EncryptMsg(ResponseDocument.ToString(), timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
+                msgCrype.EncryptMsg(responseDocument.ToString(), timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
 
                 return XDocument.Parse(finalResponseXml);
             }
@@ -214,12 +219,12 @@ namespace Senparc.Weixin.Work.MessageHandlers
 
 
         public WorkMessageHandler(Stream inputStream, PostModel postModel, int maxRecordCount = 0, IServiceProvider serviceProvider = null)
-            : base(inputStream, postModel, maxRecordCount, serviceProvider: serviceProvider)
+            : base(inputStream, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), serviceProvider: serviceProvider)
         {
         }
 
         public WorkMessageHandler(XDocument requestDocument, PostModel postModel, int maxRecordCount = 0, IServiceProvider serviceProvider = null)
-            : base(requestDocument, postModel, maxRecordCount, serviceProvider: serviceProvider)
+            : base(requestDocument, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), serviceProvider: serviceProvider)
         {
         }
 
@@ -1070,4 +1075,3 @@ namespace Senparc.Weixin.Work.MessageHandlers
         #endregion
     }
 }
-

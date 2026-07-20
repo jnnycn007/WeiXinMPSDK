@@ -1,11 +1,11 @@
 ﻿/*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
 
-    文件名：WorkMessageHandler.cs
+    文件名：WorkMessageHandler.Async.cs
     文件功能描述：企业号请求的集中处理方法
 
 
-    创建标识：Senparc - 20150313
+    创建标识：Senparc - 20191004
 
     修改标识：ccccccmd - 20220227
     修改描述：v3.14.10 添加异步方法
@@ -24,8 +24,12 @@
 
     修改标识：Senparc - 20251203
     修改描述：添加: 微信客服消息与事件回调通知（KF_MSG_OR_EVENT）异步事件处理方法
+
     修改标识：Senparc - 20260523
     修改描述：补充更新日志，完善文件头修改记录
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.32.0 移除异步兼容回调中的 Task.Run 线程池排队
 
 ----------------------------------------------------------------*/
 
@@ -108,7 +112,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> DefaultResponseMessageAsync(
             IWorkRequestMessageBase requestMessage)
         {
-            return await Task.Run(() => DefaultResponseMessage(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(DefaultResponseMessage(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -121,7 +125,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         /// </summary>
         public virtual async Task<IWorkResponseMessageBase> OnTextOrEventRequestAsync(RequestMessageText requestMessage)
         {
-            return await Task.Run(() => OnTextOrEventRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnTextOrEventRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -129,7 +133,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         /// </summary>
         public virtual async Task<IWorkResponseMessageBase> OnTextRequestAsync(RequestMessageText requestMessage)
         {
-            return await Task.Run(() => OnTextRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnTextRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -138,7 +142,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnLocationRequestAsync(
             RequestMessageLocation requestMessage)
         {
-            return await Task.Run(() => OnLocationRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnLocationRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -146,7 +150,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         /// </summary>
         public virtual async Task<IWorkResponseMessageBase> OnImageRequestAsync(RequestMessageImage requestMessage)
         {
-            return await Task.Run(() => OnImageRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnImageRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -154,7 +158,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         /// </summary>
         public virtual async Task<IWorkResponseMessageBase> OnVoiceRequestAsync(RequestMessageVoice requestMessage)
         {
-            return await Task.Run(() => OnVoiceRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnVoiceRequest(requestMessage)).ConfigureAwait(false);
         }
 
 
@@ -163,7 +167,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         /// </summary>
         public virtual async Task<IWorkResponseMessageBase> OnVideoRequestAsync(RequestMessageVideo requestMessage)
         {
-            return await Task.Run(() => OnVideoRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnVideoRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -172,7 +176,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnShortVideoRequestAsync(
             RequestMessageShortVideo requestMessage)
         {
-            return await Task.Run(() => OnShortVideoRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnShortVideoRequest(requestMessage)).ConfigureAwait(false);
         }
 
 
@@ -181,7 +185,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         /// </summary>
         public virtual async Task<IWorkResponseMessageBase> OnFileRequestAsync(RequestMessageFile requestMessage)
         {
-            return await Task.Run(() => OnFileRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnFileRequest(requestMessage)).ConfigureAwait(false);
         }
 
 
@@ -438,7 +442,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ClickRequestAsync(
             RequestMessageEvent_Click requestMessage)
         {
-            return await Task.Run(() => OnEvent_ClickRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ClickRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -448,7 +452,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ViewRequestAsync(
             RequestMessageEvent_View requestMessage)
         {
-            return await Task.Run(() => OnEvent_ViewRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ViewRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -458,7 +462,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_PicPhotoOrAlbumRequestAsync(
             RequestMessageEvent_Pic_Photo_Or_Album requestMessage)
         {
-            return await Task.Run(() => OnEvent_PicPhotoOrAlbumRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_PicPhotoOrAlbumRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -468,7 +472,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ScancodePushRequestAsync(
             RequestMessageEvent_Scancode_Push requestMessage)
         {
-            return await Task.Run(() => OnEvent_ScancodePushRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ScancodePushRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -478,7 +482,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ScancodeWaitmsgRequestAsync(
             RequestMessageEvent_Scancode_Waitmsg requestMessage)
         {
-            return await Task.Run(() => OnEvent_ScancodeWaitmsgRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ScancodeWaitmsgRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -488,7 +492,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_LocationSelectRequestAsync(
             RequestMessageEvent_Location_Select requestMessage)
         {
-            return await Task.Run(() => OnEvent_LocationSelectRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_LocationSelectRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -498,7 +502,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_PicWeixinRequestAsync(
             RequestMessageEvent_Pic_Weixin requestMessage)
         {
-            return await Task.Run(() => OnEvent_PicWeixinRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_PicWeixinRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -508,7 +512,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_PicSysphotoRequestAsync(
             RequestMessageEvent_Pic_Sysphoto requestMessage)
         {
-            return await Task.Run(() => OnEvent_PicSysphotoRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_PicSysphotoRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -518,7 +522,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_SubscribeRequestAsync(
             RequestMessageEvent_Subscribe requestMessage)
         {
-            return await Task.Run(() => OnEvent_SubscribeRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_SubscribeRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -528,7 +532,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_UnSubscribeRequestAsync(
             RequestMessageEvent_UnSubscribe requestMessage)
         {
-            return await Task.Run(() => OnEvent_UnSubscribeRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_UnSubscribeRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -538,7 +542,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_LocationRequestAsync(
             RequestMessageEvent_Location requestMessage)
         {
-            return await Task.Run(() => OnEvent_LocationRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_LocationRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -548,7 +552,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_EnterAgentRequestAsync(
             RequestMessageEvent_Enter_Agent requestMessage)
         {
-            return await Task.Run(() => OnEvent_EnterAgentRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_EnterAgentRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -559,7 +563,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_BatchJobResultRequestAsync(
             RequestMessageEvent_Batch_Job_Result requestMessage)
         {
-            return await Task.Run(() => OnEvent_BatchJobResultRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_BatchJobResultRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -570,7 +574,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactCreateUserRequestAsync(
             RequestMessageEvent_Change_Contact_User_Create requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactCreateUserRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactCreateUserRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -581,7 +585,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactUpdateUserRequestAsync(
             RequestMessageEvent_Change_Contact_User_Update requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactUpdateUserRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactUpdateUserRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -592,7 +596,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactDeleteUserRequestAsync(
             RequestMessageEvent_Change_Contact_User_Base requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactDeleteUserRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactDeleteUserRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -603,7 +607,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactCreatePartyRequestAsync(
             RequestMessageEvent_Change_Contact_Party_Create requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactCreatePartyRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactCreatePartyRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -614,7 +618,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactUpdatePartyRequestAsync(
             RequestMessageEvent_Change_Contact_Party_Update requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactUpdatePartyRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactUpdatePartyRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -625,7 +629,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactDeletePartyRequestAsync(
             RequestMessageEvent_Change_Contact_Party_Base requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactDeletePartyRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactDeletePartyRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -636,7 +640,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeContactUpdateTagRequestAsync(
             RequestMessageEvent_Change_Contact_Tag_Update requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeContactUpdateTagRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeContactUpdateTagRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -647,7 +651,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalContactAddRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Add requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalContactAddRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalContactAddRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -658,7 +662,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalContactUpdateRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Modified requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalContactUpdateRequest(requestMessage))
+            return await Task.FromResult(OnEvent_ChangeExternalContactUpdateRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
@@ -670,7 +674,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalContactAddHalfRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Add_Half requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalContactAddHalfRequest(requestMessage))
+            return await Task.FromResult(OnEvent_ChangeExternalContactAddHalfRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
@@ -682,7 +686,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalContactDelRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Del requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalContactDelRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalContactDelRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -693,7 +697,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalContactDelFollowUserRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Del_FollowUser requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalContactDelFollowUserRequest(requestMessage))
+            return await Task.FromResult(OnEvent_ChangeExternalContactDelFollowUserRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
@@ -705,7 +709,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalContactMsgAuditAsync(
             RequestMessageEvent_Change_ExternalContact_MsgAudit requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalContactMsgAudit(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalContactMsgAudit(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -716,7 +720,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalChatCreateRequestAsync(
             RequestMessageEvent_Change_External_Chat_Create requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalChatCreateRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalChatCreateRequest(requestMessage)).ConfigureAwait(false);
         }
 
 
@@ -728,7 +732,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalChatUpdateRequestAsync(
             RequestMessageEvent_Change_External_Chat_Update requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalChatUpdateRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalChatUpdateRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -739,7 +743,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalChatDismissRequestAsync(
             RequestMessageEvent_Change_External_Chat_Dismiss requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalChatDismissRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalChatDismissRequest(requestMessage)).ConfigureAwait(false);
         }
 
         #region 企业客户标签事件
@@ -752,7 +756,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalTagCreateRequestAsync(
             RequestMessageEvent_Change_External_Tag_Create requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalTagCreateRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalTagCreateRequest(requestMessage)).ConfigureAwait(false);
         }
 
 
@@ -764,7 +768,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalTagUpdateRequestAsync(
             RequestMessageEvent_Change_External_Tag_Update requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalTagUpdateRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalTagUpdateRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -775,7 +779,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalTagDeleteRequestAsync(
             RequestMessageEvent_Change_External_Tag_Delete requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalTagDeleteRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalTagDeleteRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -786,7 +790,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_ChangeExternalTagShuffleRequestAsync(
             RequestMessageEvent_Change_External_Tag_Shuffle requestMessage)
         {
-            return await Task.Run(() => OnEvent_ChangeExternalTagShuffleRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_ChangeExternalTagShuffleRequest(requestMessage)).ConfigureAwait(false);
         }
 
         #endregion
@@ -794,7 +798,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_Living_Status_ChangeRequestAsync(
             RequestMessageEvent_Living_Status_Change_Base requestMessage)
         {
-            return await Task.Run(() => OnEvent_Living_Status_ChangeRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_Living_Status_ChangeRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -805,7 +809,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_SwitchWorkbenchModel(
             RequestMessageEvent_Switch_WorkBench_Mode requestMessage)
         {
-            return await Task.Run(() => OnEvent_SwitchWorkBenchMode(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_SwitchWorkBenchMode(requestMessage)).ConfigureAwait(false);
         }
 
         #region 审批事件
@@ -818,7 +822,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_Sys_Approval_Change_Status_ChangeRequestAsync(
             RequestMessageEvent_SysApprovalChange requestMessage)
         {
-            return await Task.Run(() => OnEvent_Sys_Approval_Change_Status_ChangeRequest(requestMessage))
+            return await Task.FromResult(OnEvent_Sys_Approval_Change_Status_ChangeRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
@@ -830,7 +834,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_Open_Approval_Change_Status_ChangeRequestAsync(
             RequestMessageEvent_OpenApprovalChange requestMessage)
         {
-            return await Task.Run(() => OnEvent_Open_Approval_Change_Status_ChangeRequest(requestMessage))
+            return await Task.FromResult(OnEvent_Open_Approval_Change_Status_ChangeRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
@@ -844,7 +848,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_MsgAuditNotifyRequestAsync(
             RequestMessageEvent_MsgAuditNotify requestMessage)
         {
-            return await Task.Run(() => OnEvent_MsgAuditNotifyRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_MsgAuditNotifyRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -855,7 +859,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_TemplateCardEventRequestAsync(
             RequestMessageEvent_TemplateCardEvent requestMessage)
         {
-            return await Task.Run(() => OnEvent_TemplateCardEventRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_TemplateCardEventRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -866,7 +870,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_TemplateCardMenuEventRequestAsync(
             RequestMessageEvent_TemplateCardMenuEvent requestMessage)
         {
-            return await Task.Run(() => OnEvent_TemplateCardMenuEventRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_TemplateCardMenuEventRequest(requestMessage)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -877,7 +881,7 @@ namespace Senparc.Weixin.Work.MessageHandlers
         public virtual async Task<IWorkResponseMessageBase> OnEvent_KfMsgOrEventRequestAsync(
             RequestMessageEvent_Kf_Msg_Or_Event requestMessage)
         {
-            return await Task.Run(() => OnEvent_KfMsgOrEventRequest(requestMessage)).ConfigureAwait(false);
+            return await Task.FromResult(OnEvent_KfMsgOrEventRequest(requestMessage)).ConfigureAwait(false);
         }
 
         #endregion //Event 下属分类
@@ -942,13 +946,13 @@ namespace Senparc.Weixin.Work.MessageHandlers
         protected virtual async Task<string> OnThirdPartyEvent_Change_ContactAsync(
             RequestMessageInfo_Change_Contact thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartyEvent_Change_Contact(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartyEvent_Change_Contact(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_Register_CorpAsync(
             RequestMessager_Register_Corp thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartyEvent_Register_Corp(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartyEvent_Register_Corp(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         [Obsolete("请使用修复拼写之后的方法:OnThirdPartyEvent_Register_CorpAsync", true)]
@@ -961,31 +965,31 @@ namespace Senparc.Weixin.Work.MessageHandlers
         protected virtual async Task<string> OnThirdPartyEvent_Create_AuthAsync(
             RequestMessageInfo_Create_Auth thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartyEvent_Create_Auth(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartyEvent_Create_Auth(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_Cancel_AuthAsync(
             RequestMessageInfo_Cancel_Auth thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartyEvent_Cancel_Auth(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartyEvent_Cancel_Auth(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_Change_AuthAsync(
             RequestMessageInfo_Change_Auth thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartyEvent_Change_Auth(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartyEvent_Change_Auth(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_Suite_TicketAsync(
             RequestMessageInfo_Suite_Ticket thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartyEvent_Suite_Ticket(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartyEvent_Suite_Ticket(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartEvent_Reset_Permanent_CodeAsync(
             RequestMessageInfo_Reset_Permanent_Code thirdPartyInfo)
         {
-            return await Task.Run(() => OnThirdPartEvent_ResetPermanentCode(thirdPartyInfo)).ConfigureAwait(false);
+            return await Task.FromResult(OnThirdPartEvent_ResetPermanentCode(thirdPartyInfo)).ConfigureAwait(false);
         }
 
         #region 外部联系人
@@ -993,42 +997,42 @@ namespace Senparc.Weixin.Work.MessageHandlers
         protected virtual async Task<string> OnThirdPartyEvent_ChangeExternalContactAddRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Add requestMessage)
         {
-            return await Task.Run(() => OnThirdPartyEvent_ChangeExternalContactAddRequest(requestMessage))
+            return await Task.FromResult(OnThirdPartyEvent_ChangeExternalContactAddRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_ChangeExternalContactUpdateRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Modified requestMessage)
         {
-            return await Task.Run(() => OnThirdPartyEvent_ChangeExternalContactUpdateRequest(requestMessage))
+            return await Task.FromResult(OnThirdPartyEvent_ChangeExternalContactUpdateRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_ChangeExternalContactAddHalfRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Add_Half requestMessage)
         {
-            return await Task.Run(() => OnThirdPartyEvent_ChangeExternalContactAddHalfRequest(requestMessage))
+            return await Task.FromResult(OnThirdPartyEvent_ChangeExternalContactAddHalfRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_ChangeExternalContactDelRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Del requestMessage)
         {
-            return await Task.Run(() => OnThirdPartyEvent_ChangeExternalContactDelRequest(requestMessage))
+            return await Task.FromResult(OnThirdPartyEvent_ChangeExternalContactDelRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_ChangeExternalContactDelFollowUserRequestAsync(
             RequestMessageEvent_Change_ExternalContact_Del_FollowUser requestMessage)
         {
-            return await Task.Run(() => OnThirdPartyEvent_ChangeExternalContactDelFollowUserRequest(requestMessage))
+            return await Task.FromResult(OnThirdPartyEvent_ChangeExternalContactDelFollowUserRequest(requestMessage))
                 .ConfigureAwait(false);
         }
 
         protected virtual async Task<string> OnThirdPartyEvent_ChangeExternalContactMsgAuditAsync(
             RequestMessageEvent_Change_ExternalContact_MsgAudit requestMessage)
         {
-            return await Task.Run(() => OnThirdPartyEvent_ChangeExternalContactMsgAudit(requestMessage))
+            return await Task.FromResult(OnThirdPartyEvent_ChangeExternalContactMsgAudit(requestMessage))
                 .ConfigureAwait(false);
         }
 

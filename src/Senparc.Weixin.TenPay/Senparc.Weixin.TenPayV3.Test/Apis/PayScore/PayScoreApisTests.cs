@@ -18,6 +18,7 @@ using System.Xml.Linq;
 namespace Senparc.Weixin.TenPayV3.Apis.Tests
 {
     [TestClass()]
+    [TestCategory("Live")]
     public class PayScoreApisTests : BaseTenPayTest
     {
         string openId = "olPjZjsXuQPJoV0HlruZkNzKc91E";//换成测试人的 OpenId

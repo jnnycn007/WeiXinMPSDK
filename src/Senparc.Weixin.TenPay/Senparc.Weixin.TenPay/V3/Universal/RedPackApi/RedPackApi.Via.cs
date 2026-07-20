@@ -33,6 +33,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260523
     修改描述：补充更新日志，完善文件头修改记录
 
+    修改标识：Senparc - 20260718
+    修改描述：v1.18.3 统一红包请求资源释放与证书处理
+
 ----------------------------------------------------------------*/
 
 using Senparc.Weixin.TenPay;
@@ -153,41 +156,11 @@ namespace Senparc.Weixin.TenPay.V3
             //私钥（在安装证书时设置）
             string password = mchId;
 
-            //调用证书
-            X509Certificate2 cer = LoadCertificate(cert, password);
-
-            XmlDocument doc = new Senparc.CO2NET.ExtensionEntities.XmlDocument_XxeFixed();
-            #region 发起post请求，载入到doc中
-
-#if NET462
-            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-            //X509Certificate cer = new X509Certificate(cert, password);
-            HttpWebRequest webrequest = (HttpWebRequest)HttpWebRequest.Create(url);
-            webrequest.ClientCertificates.Add(cer);
-            webrequest.Method = "post";
-
-
-            byte[] postdatabyte = Encoding.UTF8.GetBytes(data);
-            webrequest.ContentLength = postdatabyte.Length;
-            Stream stream = webrequest.GetRequestStream();
-            stream.Write(postdatabyte, 0, postdatabyte.Length);
-            stream.Close();
-
-            HttpWebResponse httpWebResponse = (HttpWebResponse)webrequest.GetResponse();
-            StreamReader streamReader = new StreamReader(httpWebResponse.GetResponseStream());
-            string response = streamReader.ReadToEnd();
-            doc.LoadXml(response);
-#else
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(cer);
-
-            HttpClient client = new HttpClient(handler);
-            HttpContent hc = new StringContent(data);
-            var request = client.PostAsync(url, hc).Result;
-            var response = request.Content.ReadAsStreamAsync().Result;
-            doc.Load(response);
-#endif
-            #endregion
+            XmlDocument doc;
+            using (var cer = LoadCertificate(cert, password))
+            {
+                doc = RedPackHttpUtility.PostXml(url, data, cer);
+            }
 
 
             //XDocument xDoc = XDocument.Load(responseContent);

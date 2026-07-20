@@ -62,7 +62,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
         /// <summary>
         /// 支付场景信息描述
         /// </summary>
-        public CombineSceneInfo scene_info { get; set; }
+        public Scene_Info scene_info { get; set; }
 
         /// <summary>
         /// 子单信息数组
@@ -78,7 +78,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
         /// <summary>
         /// 支付场景信息描述
         /// </summary>
-        public class CombineSceneInfo
+        public class Scene_Info
         {
             /// <summary>
             /// 商户端设备号
@@ -176,12 +176,12 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
             /// <summary>
             /// 订单金额
             /// </summary>
-            public CombineAmount amount { get; set; }
+            public Amount amount { get; set; }
 
 
         }
 
-        public class CombineAmount
+        public class Amount
         {
             /// <summary>
             /// 总金额
@@ -201,7 +201,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
         /// <summary>
         /// 优惠功能
         /// </summary>
-        public class CombinePromotionDetail
+        public class Promotion_Detail
         {
             /// <summary>
             /// 券ID
@@ -271,13 +271,13 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
             /// <summary>
             /// 单品列表信息
             /// </summary>
-            public CombineGoodsDetail[] goods_detail { get; set; }
+            public Goods_Detail[] goods_detail { get; set; }
         }
 
         /// <summary>
         /// 单品列表信息
         /// </summary>
-        public class CombineGoodsDetail
+        public class Goods_Detail
         {
             /// <summary>
             /// 商品编码
@@ -312,5 +312,12 @@ namespace Senparc.Weixin.TenPayV3.Apis.BasePay
             /// </summary>
             public string goods_remark { get; set; }
         }
+
+        // 2025 年曾为规避 Swagger SchemaId 冲突重命名以下类型。
+        // 保留新名称作为别名，但公开属性继续使用已发布的历史类型签名。
+        public class CombineSceneInfo : Scene_Info { }
+        public class CombineAmount : Amount { }
+        public class CombinePromotionDetail : Promotion_Detail { }
+        public class CombineGoodsDetail : Goods_Detail { }
     }
 }

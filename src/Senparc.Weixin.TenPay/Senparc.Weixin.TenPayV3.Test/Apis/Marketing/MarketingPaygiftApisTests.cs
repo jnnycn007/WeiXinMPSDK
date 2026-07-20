@@ -28,10 +28,10 @@ namespace Senparc.Weixin.TenPayV3.Apis.Tests
             var key = TenPayHelper.GetRegisterKey(Config.SenparcWeixinSetting);
             var TenPayV3Info = TenPayV3InfoCollection.Data[key];
 
-            // 如果还未创建支付有礼活动 则建立支付有礼活动
-            if (createUniqueThresholdActivityResult is null)
+            // 支付有礼活动依赖商家券批次，先确保商家券已经创建。
+            if (createBusifavorStockResult is null)
             {
-                CreateUniqueThresholdActivityAsyncTest();
+                CreateBusifavorStockAsyncTest();
             }
 
             // TODO:流水号?这样是否有效?

@@ -18,6 +18,7 @@ namespace Senparc.Weixin.TenPayV3.Apis.Tests
 {
     //TODO: 测试前请参考 https://pay.weixin.qq.com/wiki/doc/apiv3/open/pay/chapter6_2_2.shtml
     [TestClass()]
+    [TestCategory("Live")]
     public class BusinessCircleApisTests : BaseTenPayTest
     {
         string openId = "olPjZjsXuQPJoV0HlruZkNzKc91E";//"olPjZjiGtsfaqOhUbOd2puy1wVvc";//换成测试人的 OpenId

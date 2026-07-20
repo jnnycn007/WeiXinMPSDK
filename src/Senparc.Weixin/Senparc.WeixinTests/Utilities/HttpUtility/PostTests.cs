@@ -37,6 +37,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
     public class PostTests
     {
         [TestMethod]
+        [TestCategory("Live")]
         public void PostGetJsonTest()
         {
             return;//已经通过，但需要连接远程测试，太耗时，常规测试时暂时忽略。  //TODO：迁移到 CO2NET 中测试
@@ -55,6 +56,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
         }
 
         [TestMethod()]
+        [TestCategory("Live")]
         public async Task PostGetJsonAsyncTest()
         {
             //return;//已经通过，但需要连接远程测试，太耗时，常规测试时暂时忽略。
@@ -78,6 +80,7 @@ namespace Senparc.Weixin.HttpUtility.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public void PostGetJsonByFormDataTest()
         {
             return;//已经通过，但需要连接远程测试，太耗时，常规测试时暂时忽略。
@@ -105,4 +108,3 @@ namespace Senparc.Weixin.HttpUtility.Tests
 
     }
 }
-

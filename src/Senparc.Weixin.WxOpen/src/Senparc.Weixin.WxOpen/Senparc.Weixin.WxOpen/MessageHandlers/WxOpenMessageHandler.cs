@@ -25,25 +25,28 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：小程序MessageHandler
     
     
-    创建标识：Senparc - 20170103
+    创建标识：Senparc - 20260717
 
     修改标识：Senparc - 20181030
     修改描述：v3.1.16 优化 MessageHandler 构造函数，提供 PostModel 默认值
-    
+
     修改标识：Senparc - 20181117
     修改描述：v3.2.0 Execute() 重写方法名称改为 BuildResponseMessage()
-    
+
     修改标识：Senparc - 20190917
     修改描述：v3.6.0 支持新版本 MessageHandler 和 WeixinContext，支持使用分布式缓存储存上下文消息
 
     修改标识：Senparc - 20200303
     修改描述：v3.8.304.1 优化 MessageHandler 的异步方法调用
-      
+
     修改标识：Senparc - 2020909
     修改描述：v3.8.511 MessageHandler 增加异步方法
 
     修改标识：Senparc - 20220808
     修改描述：v3.15.7 修复 RequestMsgType.Event 返回值没有正确赋值的问题
+
+    修改标识：Senparc - 20260718
+    修改描述：v3.28.0 限制消息上下文容量并缓存响应 XML
 
 ----------------------------------------------------------------*/
 
@@ -63,6 +66,7 @@ using Senparc.CO2NET.Trace;
 using Senparc.CO2NET.Extensions;
 using Senparc.Weixin.Tencent;
 using Senparc.NeuChar.Helpers;
+using Senparc.Weixin.MessageContexts;
 using System.Threading.Tasks;
 using System.Threading;
 //using IRequestMessageBase = Senparc.Weixin.WxOpen.Entities.IRequestMessageBase;
@@ -88,24 +92,38 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         /// 正常情况下只有当执行Execute()方法后才可能有值。
         /// 也可以结合Cancel，提前给ResponseMessage赋值。
         /// </summary>
-        public new IResponseMessageBase ResponseMessage { get => base.ResponseMessage as IResponseMessageBase; set => base.ResponseMessage = value; }
+        public new IResponseMessageBase ResponseMessage
+        {
+            get => base.ResponseMessage as IResponseMessageBase;
+            set => base.ResponseMessage = value;
+        }
 
 
-        public override XDocument ResponseDocument => ResponseMessage != null ? EntityHelper.ConvertEntityToXml(ResponseMessage as ResponseMessageBase) : null;
+        public override XDocument ResponseDocument
+        {
+            get
+            {
+                var responseMessage = ResponseMessage;
+                return responseMessage != null
+                    ? EntityHelper.ConvertEntityToXml(responseMessage as ResponseMessageBase)
+                    : null;
+            }
+        }
 
 
         public override XDocument FinalResponseDocument
         {
             get
             {
-                if (ResponseDocument == null)
+                var responseDocument = ResponseDocument;
+                if (responseDocument == null)
                 {
                     return null;
                 }
 
                 if (!UsingEncryptMessage)
                 {
-                    return ResponseDocument;
+                    return responseDocument;
                 }
 
                 var timeStamp = SystemTime.Now.Ticks.ToString();
@@ -113,7 +131,7 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
 
                 WXBizMsgCrypt msgCrype = new WXBizMsgCrypt(_postModel.Token, _postModel.EncodingAESKey, _postModel.AppId);
                 string finalResponseXml = null;
-                msgCrype.EncryptResponseMsg(ResponseDocument.ToString().Replace("\r\n", "\n")/* 替换\r\n是为了处理iphone设备上换行bug */, timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
+                msgCrype.EncryptResponseMsg(responseDocument.ToString().Replace("\r\n", "\n")/* 替换\r\n是为了处理iphone设备上换行bug */, timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
 
                 return XDocument.Parse(finalResponseXml);
             }
@@ -144,7 +162,7 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         /// <param name="onlyAllowEncryptMessage">当平台同时兼容明文消息和加密消息时，只允许处理加密消息（不允许处理明文消息），默认为 False</param>
         ///// <param name="developerInfo">开发者信息（非必填）</param>
         public WxOpenMessageHandler(Stream inputStream, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false, IServiceProvider serviceProvider = null)
-            : base(inputStream, postModel, maxRecordCount, onlyAllowEncryptMessage, serviceProvider)
+            : base(inputStream, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), onlyAllowEncryptMessage, serviceProvider)
         {
         }
 
@@ -156,7 +174,7 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         /// <param name="maxRecordCount">上下文最多保留消息（0为保存所有）</param>
         /// <param name="onlyAllowEncryptMessage">当平台同时兼容明文消息和加密消息时，只允许处理加密消息（不允许处理明文消息），默认为 False</param>
         public WxOpenMessageHandler(XDocument requestDocument, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false, IServiceProvider serviceProvider = null)
-            : base(requestDocument, postModel, maxRecordCount, onlyAllowEncryptMessage, serviceProvider)
+            : base(requestDocument, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), onlyAllowEncryptMessage, serviceProvider)
         {
         }
 
@@ -168,7 +186,7 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         /// <param name="maxRecordCount">上下文最多保留消息（0为保存所有）</param>
         /// <param name="onlyAllowEncryptMessage">当平台同时兼容明文消息和加密消息时，只允许处理加密消息（不允许处理明文消息），默认为 False</param>
         public WxOpenMessageHandler(RequestMessageBase requestMessageBase, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false)
-            : base(requestMessageBase, postModel, maxRecordCount, onlyAllowEncryptMessage)
+            : base(requestMessageBase, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), onlyAllowEncryptMessage)
         {
         }
 
@@ -345,4 +363,3 @@ namespace Senparc.Weixin.WxOpen.MessageHandlers
         #endregion
     }
 }
-

@@ -16,6 +16,9 @@
     修改标识：Senparc - 20251223
     修改描述：修复 SendFile 接口参数格式，符合企业微信官方文档
 
+    修改标识：Senparc - 20260718
+    修改描述：v3.32.0 确定性释放文件路径重载创建的文件流
+
 ----------------------------------------------------------------*/
 
 /*
@@ -200,7 +203,7 @@ namespace Senparc.Weixin.Work.AdvancedAPIs.Webhook
         /// <returns></returns>
         public static WorkJsonResult SendImage(string key, string filepath, int timeOut = Config.TIME_OUT)
         {
-            FileStream file = new FileStream(filepath, FileMode.Open);
+            using FileStream file = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
             return SendImage(key, file, timeOut);
         }
         /// <summary>
@@ -419,8 +422,8 @@ namespace Senparc.Weixin.Work.AdvancedAPIs.Webhook
         /// <returns></returns>
         public static async Task<WorkJsonResult> SendImageAsync(string key, string filepath, int timeOut = Config.TIME_OUT)
         {
-            FileStream file = new FileStream(filepath, FileMode.Open);
-            return await SendImageAsync(key, file, timeOut);
+            using FileStream file = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return await SendImageAsync(key, file, timeOut).ConfigureAwait(false);
         }
         /// <summary>
         /// 【异步方法】群机器人发送图片信息
@@ -470,4 +473,3 @@ namespace Senparc.Weixin.Work.AdvancedAPIs.Webhook
         #endregion
     }
 }
-

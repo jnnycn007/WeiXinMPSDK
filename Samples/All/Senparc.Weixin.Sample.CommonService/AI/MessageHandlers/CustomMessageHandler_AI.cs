@@ -13,6 +13,9 @@
     2. 新增记忆整理功能：在长对话模式下，AI会自动总结对话内容并保存为记忆
     3. 优化欢迎消息：更新了功能说明，包含新增的命令使用说明
 
+    修改标识：Senparc - 20260718
+    修改描述：v3.1.0 迁移至 AgentKernel 会话并完善文本与图像生成流程
+
 ----------------------------------------------------------------*/
 
 using System;
@@ -21,12 +24,12 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.TextToImage;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using AuthorRole = Microsoft.Extensions.AI.ChatRole;
 using Senparc.AI;
-using Senparc.AI.Entities;
-using Senparc.AI.Kernel;
-using Senparc.AI.Kernel.Handlers;
+using Senparc.AI.AgentKernel;
+using Senparc.AI.AgentKernel.Handlers;
 using Senparc.CO2NET.Extensions;
 using Senparc.CO2NET.Helpers;
 using Senparc.CO2NET.MessageQueue;
@@ -56,6 +59,31 @@ namespace Senparc.Weixin.Sample.CommonService.CustomMessageHandler
 [结果由 AI 生成，仅供参考]";
 
         const string GEN_IMAGE_PATTERN = @"(?i)img\s+(.+)";
+
+        private static ChatClientAgentOptions CreateAgentOptions(string systemMessage, int maxOutputTokens, float temperature, float topP)
+        {
+            return new ChatClientAgentOptions
+            {
+                ChatOptions = new ChatOptions
+                {
+                    Instructions = systemMessage,
+                    MaxOutputTokens = maxOutputTokens,
+                    Temperature = temperature,
+                    TopP = topP
+                }
+            };
+        }
+
+        private static void TrimAgentHistory(List<ChatMessage> history, int maxUserMessages)
+        {
+            while (history.Count(message => message.Role == ChatRole.User) > maxUserMessages)
+            {
+                var firstUserIndex = history.FindIndex(message => message.Role == ChatRole.User);
+                var nextUserIndex = history.FindIndex(firstUserIndex + 1, message => message.Role == ChatRole.User);
+                var removeCount = nextUserIndex < 0 ? history.Count - firstUserIndex : nextUserIndex - firstUserIndex;
+                history.RemoveRange(firstUserIndex, removeCount);
+            }
+        }
 
 
         /// <summary>
@@ -323,22 +351,17 @@ namespace Senparc.Weixin.Sample.CommonService.CustomMessageHandler
 
 Prompt：";
 
-            //模型请求参数
-            var parameter = new PromptConfigParameter()
-            {
-                MaxTokens = 3000,
-                Temperature = 0.7,
-                TopP = 0.5,
-            };
-
-            var setting = (SenparcAiSetting)Senparc.AI.Config.SenparcAiSetting;
-            var aiHandler = new SemanticAiHandler(setting);
-            var iWantTo = aiHandler.IWantTo()
-                        .ConfigModel(ConfigModel.TextCompletion, "Jeffrey")
-                        .BuildKernel()
-                        .SetPromptConfigParameter(parameter);
-            var request = iWantTo.CreateRequest(newImgPrompt);
-            var result = await iWantTo.RunAsync(request);
+            var setting = Senparc.AI.Config.SenparcAiSetting;
+            var aiHandler = new AgentAiHandler(setting);
+            var chatOptions = CreateAgentOptions(
+                Senparc.AI.DefaultSetting.DEFAULT_SYSTEM_MESSAGE,
+                maxOutputTokens: 3000,
+                temperature: 0.7f,
+                topP: 0.5f);
+            var iWantTo = aiHandler.IWantTo(setting)
+                .ConfigChatModel("Jeffrey", chatOptions)
+                .BuildKernel();
+            var result = await iWantTo.RunChatAsync(newImgPrompt);
 
             SenparcTrace.SendCustomLog("AI 优化图像生成 Prompt", newImgPrompt);
 
@@ -364,30 +387,38 @@ Prompt：";
             try
             {
                 //指定 AzureDallE3 模型，同样需要在 appsettings.json 文件中配置
-                var dalleSetting = ((SenparcAiSetting)Senparc.AI.Config.SenparcAiSetting)["AzureDallE3"];
-                var aiHandler = new SemanticAiHandler(dalleSetting);
-
+                var dalleSetting = ((Senparc.AI.AgentKernel.SenparcAiSetting)Senparc.AI.Config.SenparcAiSetting)["AzureDallE3"];
+                var aiHandler = new AgentAiHandler(dalleSetting);
                 var iWantTo = aiHandler.IWantTo(dalleSetting)
-                            .ConfigModel(ConfigModel.TextToImage, "Jeffrey")
-                            .BuildKernel();
+                    .ConfigImageModel("Jeffrey")
+                    .BuildKernel();
 
-#pragma warning disable SKEXP0001 // 类型仅用于评估，在将来的更新中可能会被更改或删除。取消此诊断以继续。
-
-                var dallE = iWantTo.GetRequiredService<ITextToImageService>();
-
-                var imageUrl = await dallE.GenerateImageAsync(imgPrompt, 1024, 1024);
+                var image = await iWantTo.Kernel.ImageGenerationAsync(imgPrompt, 1024, 1024);
+                if (image?.Value == null)
+                {
+                    throw new InvalidOperationException("AI 图片生成接口未返回图片。");
+                }
 
                 var tempFileDir = Senparc.CO2NET.Utilities.ServerUtility.ContentRootMapPath("~/App_Data/TempGenImg");
                 Senparc.CO2NET.Helpers.FileHelper.TryCreateDirectory(tempFileDir);
 
-                var tempFilePath = Path.Combine(tempFileDir, $"Senparc.AI.Dalle-{SystemTime.NowTicks}.jpg");
+                var tempFilePath = Path.Combine(tempFileDir, $"Senparc.AI.DallE-{SystemTime.NowTicks}.png");
 
-                using (var fs = new FileStream(tempFilePath, FileMode.OpenOrCreate))
+                if (image.Value.ImageBytes != null)
                 {
-                    await Senparc.CO2NET.HttpUtility.Get.DownloadAsync(ServiceProvider, imageUrl, fs);
-                    await fs.FlushAsync();
-                    await Console.Out.WriteLineAsync("图片已保存：" + tempFilePath);
+                    await File.WriteAllBytesAsync(tempFilePath, image.Value.ImageBytes.ToArray());
                 }
+                else if (image.Value.ImageUri != null)
+                {
+                    using var fs = new FileStream(tempFilePath, FileMode.Create);
+                    await Senparc.CO2NET.HttpUtility.Get.DownloadAsync(ServiceProvider, image.Value.ImageUri.ToString(), fs);
+                    await fs.FlushAsync();
+                }
+                else
+                {
+                    throw new InvalidOperationException("AI 图片生成接口未返回图片内容。");
+                }
+                await Console.Out.WriteLineAsync("图片已保存：" + tempFilePath);
 
                 //及时给一个提示，不等待
                 _ = Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(appId, OpenId, "已生成，正在保存，请稍后！");
@@ -408,8 +439,6 @@ Prompt：";
                     await UpdateMessageContextAsync(currentMessageContext, chatStore);
                 }
 
-#pragma warning restore SKEXP0001 // 类型仅用于评估，在将来的更新中可能会被更改或删除。取消此诊断以继续。
-
             }
             catch (Exception ex)
             {
@@ -427,19 +456,6 @@ Prompt：";
         /// <returns></returns>
         private async Task TextChatAsync(string prompt, ChatStore chatStore, bool storeHistory, CustomMessageContext currentMessageContext)
         {
-            /* 模型配置
-             * 注意：需要在 appsettings.json 中的 <SenparcAiSetting> 节点配置 AI 模型参数，否则无法使用 AI 能力
-             */
-            var setting = (SenparcAiSetting)Senparc.AI.Config.SenparcAiSetting;//也可以留空，将自动获取
-
-            //模型请求参数
-            var parameter = new PromptConfigParameter()
-            {
-                MaxTokens = 2000,
-                Temperature = 0.3,
-                TopP = 0.5,
-            };
-
             //最大保存 AI 对话记录数
             var maxHistoryCount = 10;
 
@@ -454,25 +470,26 @@ Prompt：";
             //更新上一次prompt
             chatStore.LastStoredPrompt = prompt;
 
-            var aiHandler = new SemanticAiHandler(setting);
-            var iWantToRun = aiHandler.ChatConfig(parameter,
-                                userId: "Jeffrey",
-                                maxHistoryStore: maxHistoryCount,
-                                chatSystemMessage: systemMessage,
-                                senparcAiSetting: setting);
+            var setting = Senparc.AI.Config.SenparcAiSetting;
+            var aiHandler = new AgentAiHandler(setting);
+            var chatOptions = CreateAgentOptions(systemMessage, 2000, 0.3f, 0.5f);
+            var iWantToRun = await aiHandler.IWantTo(setting)
+                .ConfigChatModel("Jeffrey", chatOptions)
+                .BuildKernelWithAgentSessionAsync();
+            var session = iWantToRun.Kernel.AgentSession
+                ?? throw new InvalidOperationException("AgentSession 创建失败。");
 
-            //注入历史记录（也可以把 iWantToRun 对象缓存起来，其中会自动包含 history，不需要每次读取或者保存）
-            iWantToRun.StoredAiArguments.Context["history"] = chatStore.GetChatHistory();// AIKernl 的 history 为 ChatHistory 类型
+            //从微信上下文恢复 AgentSession 的历史记录
+            session.SetInMemoryChatHistory(chatStore.GetChatHistory());
+            var result = await iWantToRun.RunChatAsync(prompt, session);
 
-            //获取请求（注意：因为微信需要一次返回所有文本，所以此处不使用 AI 流行的 Stream（流式）输出
-            var result = await aiHandler.ChatAsync(iWantToRun, prompt);
-
-            //保存历史记录
-            if (storeHistory)
+            if (storeHistory && session.TryGetInMemoryChatHistory(out List<ChatMessage> history))
             {
-                chatStore.SetChatHistory(iWantToRun.StoredAiArguments.Context["history"] as ChatHistory);
+                TrimAgentHistory(history, maxHistoryCount);
+                chatStore.SetChatHistory(history);
                 await UpdateMessageContextAsync(currentMessageContext, chatStore);
             }
+            var modelName = iWantToRun.Kernel.ModelName.Chat;
 
             try
             {
@@ -480,7 +497,7 @@ Prompt：";
 
                 var responseMessageText = @$"{result.OutputString}
 -------
-由 AI 模型生成，仅供科学研究：{iWantToRun.SemanticAiHandler.SemanticKernelHelper.AiSetting.ModelName.Chat}";
+由 AI 模型生成，仅供科学研究：{modelName}";
 
                 await Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(appId, OpenId, responseMessageText);
             }
@@ -515,22 +532,17 @@ Prompt：";
 
 [结论]
 ";
-                //模型请求参数
-                var parameter = new PromptConfigParameter()
-                {
-                    MaxTokens = 200,
-                    Temperature = 0.7,
-                    TopP = 0.5,
-                };
-
-                var setting = (SenparcAiSetting)Senparc.AI.Config.SenparcAiSetting;
-                var aiHandler = new SemanticAiHandler(setting);
-                var iWantTo = aiHandler.IWantTo()
-                            .ConfigModel(ConfigModel.TextCompletion, "Jeffrey")
-                            .BuildKernel()
-                            .SetPromptConfigParameter(parameter);
-                var request = iWantTo.CreateRequest(judgePrompt);
-                var result = await iWantTo.RunAsync(request);
+                var setting = Senparc.AI.Config.SenparcAiSetting;
+                var aiHandler = new AgentAiHandler(setting);
+                var chatOptions = CreateAgentOptions(
+                    Senparc.AI.DefaultSetting.DEFAULT_SYSTEM_MESSAGE,
+                    maxOutputTokens: 200,
+                    temperature: 0.7f,
+                    topP: 0.5f);
+                var iWantTo = aiHandler.IWantTo(setting)
+                    .ConfigChatModel("Jeffrey", chatOptions)
+                    .BuildKernel();
+                var result = await iWantTo.RunChatAsync(judgePrompt);
 
                 if (int.TryParse(result.OutputString.Trim().Trim('\n'), out int resultNum) && resultNum == 1)
                 {
@@ -561,36 +573,19 @@ Prompt：";
 3. 关键的信息点
 4. 之前聊天的内容
             ";
-                /* 模型配置
-                 * 注意：需要在 appsettings.json 中的 <SenparcAiSetting> 节点配置 AI 模型参数，否则无法使用 AI 能力
-                 */
-                var setting = (SenparcAiSetting)Senparc.AI.Config.SenparcAiSetting;//也可以留空，将自动获取
-
-                //模型请求参数
-                var parameter = new PromptConfigParameter()
-                {
-                    MaxTokens = 2000,
-                    Temperature = 0.3,
-                    TopP = 0.3,
-                };
-
-                //最大保存 AI 对话记录数
-                var maxHistoryCount = 10;
-
                 //使用上一轮的记忆作为SystemMessage
                 var systemMessage = chatStore.LastStoredMemory == null ? Senparc.AI.DefaultSetting.DEFAULT_SYSTEM_MESSAGE : chatStore.LastStoredMemory;
 
-                var aiHandler = new SemanticAiHandler(setting);
-                var iWantToRun = aiHandler.ChatConfig(parameter,
-                                    userId: "Jeffrey",
-                                    maxHistoryStore: maxHistoryCount,
-                                    chatSystemMessage: systemMessage,
-                                    senparcAiSetting: setting);
-
-                //注入历史记录（也可以把 iWantToRun 对象缓存起来，其中会自动包含 history，不需要每次读取或者保存）
-                iWantToRun.StoredAiArguments.Context["history"] = chatStore.GetChatHistory();// AIKernl 的 history 为 ChatHistory 类型
-
-                var result = await aiHandler.ChatAsync(iWantToRun, memoryPrompt);
+                var setting = Senparc.AI.Config.SenparcAiSetting;
+                var aiHandler = new AgentAiHandler(setting);
+                var chatOptions = CreateAgentOptions(systemMessage, 2000, 0.3f, 0.3f);
+                var iWantToRun = await aiHandler.IWantTo(setting)
+                    .ConfigChatModel("Jeffrey", chatOptions)
+                    .BuildKernelWithAgentSessionAsync();
+                var session = iWantToRun.Kernel.AgentSession
+                    ?? throw new InvalidOperationException("AgentSession 创建失败。");
+                session.SetInMemoryChatHistory(chatStore.GetChatHistory());
+                var result = await iWantToRun.RunChatAsync(memoryPrompt, session);
                 
                 var memory = "用户之前的对话被概括为" + result.OutputString + "\n5.用户最近一次提问的内容是：" + prompt;
 
@@ -607,4 +602,3 @@ Prompt：";
         }
     }
 }
-

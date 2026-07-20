@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace Senparc.Weixin.TenPayV3.Test.net6.Apis
 {
     [TestClass()]
+    [TestCategory("Live")]
     public class ProfitsharingApisTest : BaseTenPayTest
     {
         #region 分账接口

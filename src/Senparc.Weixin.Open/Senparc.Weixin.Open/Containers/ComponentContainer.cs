@@ -493,7 +493,7 @@ namespace Senparc.Weixin.Open.Containers
                 AuthorizerTokenRefreshedFunc = authorizerTokenRefreshedFunc;
             }
 
-            RegisterFuncCollection[componentAppId] = async () =>
+            SetRegistrationCallback(componentAppId, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -506,7 +506,7 @@ namespace Senparc.Weixin.Open.Containers
                 await UpdateAsync(componentAppId, bag, null).ConfigureAwait(false);
                 return bag;
                 //}
-            };
+            });
             await RegisterFuncCollection[componentAppId]().ConfigureAwait(false);
 
             if (!name.IsNullOrEmpty())

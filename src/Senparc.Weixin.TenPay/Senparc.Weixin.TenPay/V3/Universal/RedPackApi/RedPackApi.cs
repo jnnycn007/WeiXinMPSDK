@@ -26,7 +26,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     
     
     创建标识：Yu XiaoChou - 20160107
-        
+
     修改标识：Senparc - 20161024
     修改描述：v14.3.102 重新整理红包发送方法
 
@@ -41,22 +41,25 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20170810
     修改描述：v14.6.10 添加接口：普通红包发送(服务商）
-    
+
     修改标识：Senparc - 20170925
     修改描述：添加新规定提示：红包超过2000元必须提供scene_id参数：
               https://pay.weixin.qq.com/wiki/doc/api/tools/cash_coupon.php?chapter=13_4&index=3
-                  
+
     修改标识：Senparc - 20171208
     修改描述：v14.8.10 修复红包接口 RedPackApi.SendNormalRedPack() 在.NET 4.6 下的XML解析问题
 
     修改标识：Senparc - 20190121
     修改描述：v16.6.9 修复：裂变红包 url 及参数不正确
-    
+
     修改标识：RongjieAAA - 20191122
     修改描述：增加小程序红包发送API
 
     修改标识：Senparc - 20260523
     修改描述：补充更新日志，完善文件头修改记录
+
+    修改标识：Senparc - 20260718
+    修改描述：v1.18.3 通过资源安全 HTTP 辅助类执行红包请求
 
 ----------------------------------------------------------------*/
 
@@ -225,44 +228,11 @@ PROCESSING	请求已受理，请稍后使用原单号查询发放结果	二十�
             //私钥（在安装证书时设置）
             string password = mchId;
 
-            //调用证书
-            X509Certificate2 cer = LoadCertificate(cert, password);
-
-            XmlDocument doc = new Senparc.CO2NET.ExtensionEntities.XmlDocument_XxeFixed();
-
-#if NET462
-            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-            //X509Certificate cer = new X509Certificate(cert, password);
-            #region 发起post请求
-            HttpWebRequest webrequest = (HttpWebRequest)HttpWebRequest.Create(url);
-            webrequest.ClientCertificates.Add(cer);
-            webrequest.Method = "post";
-
-
-            byte[] postdatabyte = Encoding.UTF8.GetBytes(data);
-            webrequest.ContentLength = postdatabyte.Length;
-            Stream stream = webrequest.GetRequestStream();
-            stream.Write(postdatabyte, 0, postdatabyte.Length);
-            stream.Close();
-
-            HttpWebResponse httpWebResponse = (HttpWebResponse)webrequest.GetResponse();
-            StreamReader streamReader = new StreamReader(httpWebResponse.GetResponseStream());
-            string response = streamReader.ReadToEnd();
-            #endregion
-            doc.LoadXml(response);
-#else
-            #region 发起post请求
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(cer);
-
-            HttpClient client = new HttpClient(handler);
-            HttpContent hc = new StringContent(data);
-            var request = client.PostAsync(url, hc).Result;
-            var response = request.Content.ReadAsStreamAsync().Result;
-            #endregion
-            doc.Load(response);
-
-#endif
+            XmlDocument doc;
+            using (var cer = LoadCertificate(cert, password))
+            {
+                doc = RedPackHttpUtility.PostXml(url, data, cer);
+            }
 
             //XDocument xDoc = XDocument.Load(responseContent);
 
@@ -453,43 +423,11 @@ PROCESSING	请求已受理，请稍后使用原单号查询发放结果	二十�
             //私钥（在安装证书时设置）
             string password = mchId;
 
-            //调用证书
-            X509Certificate2 cer = LoadCertificate(cert, password);
-
-            XmlDocument doc = new Senparc.CO2NET.ExtensionEntities.XmlDocument_XxeFixed();
-
-            #region 发起post请求，载入到doc中
-
-#if NET462
-            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-            //X509Certificate cer = new X509Certificate(cert, password);
-
-            HttpWebRequest webrequest = (HttpWebRequest)HttpWebRequest.Create(url);
-            webrequest.ClientCertificates.Add(cer);
-            webrequest.Method = "post";
-
-
-            byte[] postdatabyte = Encoding.UTF8.GetBytes(data);
-            webrequest.ContentLength = postdatabyte.Length;
-            Stream stream = webrequest.GetRequestStream();
-            stream.Write(postdatabyte, 0, postdatabyte.Length);
-            stream.Close();
-
-            HttpWebResponse httpWebResponse = (HttpWebResponse)webrequest.GetResponse();
-            StreamReader streamReader = new StreamReader(httpWebResponse.GetResponseStream());
-            string response = streamReader.ReadToEnd();
-            doc.LoadXml(response);
-#else
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(cer);
-
-            HttpClient client = new HttpClient(handler);
-            HttpContent hc = new StringContent(data);
-            var request = client.PostAsync(url, hc).Result;
-            var response = request.Content.ReadAsStreamAsync().Result;
-            doc.Load(response);
-#endif
-            #endregion
+            XmlDocument doc;
+            using (var cer = LoadCertificate(cert, password))
+            {
+                doc = RedPackHttpUtility.PostXml(url, data, cer);
+            }
 
 
             //XDocument xDoc = XDocument.Load(responseContent);
@@ -625,43 +563,11 @@ PROCESSING	请求已受理，请稍后使用原单号查询发放结果	二十�
             //私钥（在安装证书时设置）
             string password = mchId;
 
-            //调用证书
-            //X509Certificate cer = new X509Certificate(cert, password);
-            X509Certificate2 cer = LoadCertificate(cert, password);
-
-            XmlDocument doc = new Senparc.CO2NET.ExtensionEntities.XmlDocument_XxeFixed();
-            #region 发起post请求，载入到doc中
-
-#if NET462
-            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-
-            HttpWebRequest webrequest = (HttpWebRequest)HttpWebRequest.Create(url);
-            webrequest.ClientCertificates.Add(cer);
-            webrequest.Method = "post";
-
-
-            byte[] postdatabyte = Encoding.UTF8.GetBytes(data);
-            webrequest.ContentLength = postdatabyte.Length;
-            Stream stream = webrequest.GetRequestStream();
-            stream.Write(postdatabyte, 0, postdatabyte.Length);
-            stream.Close();
-
-            HttpWebResponse httpWebResponse = (HttpWebResponse)webrequest.GetResponse();
-            StreamReader streamReader = new StreamReader(httpWebResponse.GetResponseStream());
-            string response = streamReader.ReadToEnd();
-            doc.LoadXml(response);
-#else
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(cer);
-
-            HttpClient client = new HttpClient(handler);
-            HttpContent hc = new StringContent(data);
-            var request = client.PostAsync(url, hc).Result;
-            var response = request.Content.ReadAsStreamAsync().Result;
-            doc.Load(response);
-
-#endif
-            #endregion
+            XmlDocument doc;
+            using (var cer = LoadCertificate(cert, password))
+            {
+                doc = RedPackHttpUtility.PostXml(url, data, cer);
+            }
 
 
 
@@ -853,44 +759,11 @@ PROCESSING	请求已受理，请稍后使用原单号查询发放结果	二十�
             //私钥（在安装证书时设置）
             string password = mchId;
 
-            //调用证书
-            X509Certificate2 cer = LoadCertificate(cert, password);
-
-            XmlDocument doc = new Senparc.CO2NET.ExtensionEntities.XmlDocument_XxeFixed();
-
-#if NET462
-            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-            //X509Certificate cer = new X509Certificate(cert, password);
-            #region 发起post请求
-            HttpWebRequest webrequest = (HttpWebRequest)HttpWebRequest.Create(url);
-            webrequest.ClientCertificates.Add(cer);
-            webrequest.Method = "post";
-
-
-            byte[] postdatabyte = Encoding.UTF8.GetBytes(data);
-            webrequest.ContentLength = postdatabyte.Length;
-            Stream stream = webrequest.GetRequestStream();
-            stream.Write(postdatabyte, 0, postdatabyte.Length);
-            stream.Close();
-
-            HttpWebResponse httpWebResponse = (HttpWebResponse)webrequest.GetResponse();
-            StreamReader streamReader = new StreamReader(httpWebResponse.GetResponseStream());
-            string response = streamReader.ReadToEnd();
-            #endregion
-            doc.LoadXml(response);
-#else
-            #region 发起post请求
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(cer);
-
-            HttpClient client = new HttpClient(handler);
-            HttpContent hc = new StringContent(data);
-            var request = client.PostAsync(url, hc).Result;
-            var response = request.Content.ReadAsStreamAsync().Result;
-            #endregion
-            doc.Load(response);
-
-#endif
+            XmlDocument doc;
+            using (var cer = LoadCertificate(cert, password))
+            {
+                doc = RedPackHttpUtility.PostXml(url, data, cer);
+            }
 
             //XDocument xDoc = XDocument.Load(responseContent);
 

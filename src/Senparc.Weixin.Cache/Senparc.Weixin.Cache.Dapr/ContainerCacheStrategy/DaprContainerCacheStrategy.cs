@@ -25,7 +25,10 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：Redis 容器缓存策略。
 
 
-    创建标识：Senparc - 20240731
+    创建标识：Senparc - 20160308
+
+    修改标识：Senparc - 20260718
+    修改描述：v0.3.3 声明缓存能力并为不支持的键枚举返回明确异常
 
 ----------------------------------------------------------------*/
 
@@ -49,6 +52,8 @@ namespace Senparc.Weixin.Cache.Dapr
     /// </summary>
     public sealed class DaprContainerCacheStrategy : BaseContainerCacheStrategy
     {
+        public override ContainerCacheCapabilities Capabilities => ContainerCacheCapabilities.None;
+
         #region IDomainExtensionCacheStrategy 成员
         public override ICacheStrategyDomain CacheStrategyDomain { get { return ContainerCacheStrategyDomain.Instance; } }
 
@@ -165,9 +170,10 @@ namespace Senparc.Weixin.Cache.Dapr
         /// </summary>
         /// <typeparam name="TBag"></typeparam>
         /// <returns></returns>
-        public override async Task<IDictionary<string, TBag>> GetAllAsync<TBag>()
+        public override Task<IDictionary<string, TBag>> GetAllAsync<TBag>()
         {
-            throw new NotImplementedException();
+            return Task.FromException<IDictionary<string, TBag>>(
+                new NotImplementedException());
             //var baseCacheStrategy = BaseCacheStrategy();
             //var key = ContainerHelper.GetItemCacheKey(typeof(TBag), "");
             //key = key.Substring(0, key.Length - 1);//去掉:号
@@ -193,4 +199,3 @@ namespace Senparc.Weixin.Cache.Dapr
 
     }
 }
-

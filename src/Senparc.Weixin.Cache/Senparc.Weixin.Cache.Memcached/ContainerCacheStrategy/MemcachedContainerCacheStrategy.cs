@@ -1,11 +1,11 @@
 ﻿/*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
 
-    文件名：MemcachedContainerStrategy.cs
+    文件名：MemcachedContainerCacheStrategy.cs
     文件功能描述：Memcached 容器缓存策略。
 
 
-    创建标识：Senparc - 20160308
+    创建标识：Senparc - 20160225
 
     修改标识：Senparc - 20160808
     修改描述：v0.0.2 删除 ItemCollection 属性，直接使用ContainerBag加入到缓存
@@ -18,6 +18,9 @@
 
     修改标识：Senparc - 20170205
     修改描述：v0.2.0 重构分布式锁
+
+    修改标识：Senparc - 20260718
+    修改描述：v2.19.3 声明缓存能力并为不支持的键枚举返回明确异常
 
 ----------------------------------------------------------------*/
 
@@ -40,6 +43,8 @@ namespace Senparc.Weixin.Cache.Memcached
 {
     public class MemcachedContainerCacheStrategy : BaseContainerCacheStrategy
     {
+        public override ContainerCacheCapabilities Capabilities => ContainerCacheCapabilities.None;
+
         #region IDomainExtensionCacheStrategy 成员
         public override ICacheStrategyDomain CacheStrategyDomain { get { return ContainerCacheStrategyDomain.Instance; } }
 
@@ -103,9 +108,10 @@ namespace Senparc.Weixin.Cache.Memcached
         /// </summary>
         /// <typeparam name="TBag"></typeparam>
         /// <returns></returns>
-        public override async Task<IDictionary<string, TBag>> GetAllAsync<TBag>()
+        public override Task<IDictionary<string, TBag>> GetAllAsync<TBag>()
         {
-            throw new NotImplementedException();
+            return Task.FromException<IDictionary<string, TBag>>(
+                new NotImplementedException());
         }
 
         public override async Task UpdateContainerBagAsync(string key, IBaseContainerBag bag, TimeSpan? expiry = null, bool isFullKey = false)
@@ -127,4 +133,3 @@ namespace Senparc.Weixin.Cache.Memcached
 
     }
 }
-

@@ -1,11 +1,14 @@
 ﻿/*----------------------------------------------------------------
     Copyright (C) 2026 Senparc
-    
-    AiDocController.cs
+
+    文件名：AiDocController.cs
     文件功能描述：AI 文档
-    
-    
+
+
     创建标识：Senparc - 20250818
+
+    修改标识：Senparc - 20260718
+    修改描述：v10.1.0.0 使用 AgentKernel MCP 工具集执行微信 API 方案规划
 
 ----------------------------------------------------------------*/
 
@@ -30,13 +33,11 @@ using Senparc.Weixin.MP;
 using Senparc.Weixin.Tencent;
 using Senparc.CO2NET.Trace;
 using Senparc.CO2NET.Cache;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
-using ModelContextProtocol.Client;
-using Senparc.AI.Kernel;
-using Senparc.AI.Entities;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Senparc.AI.AgentKernel;
+using Senparc.AI.AgentKernel.Handlers;
+using Senparc.AI.AgentKernel.Mcp;
+using Senparc.AI.Interfaces;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -47,11 +48,11 @@ namespace Senparc.Weixin.Sample.Net8.Controllers
     /// </summary>
     public class AiDocController : BaseController
     {
-        IServiceProvider _serviceProvider;
+        private readonly IAiHandler _aiHandler;
 
-        public AiDocController(IServiceProvider serviceProvider)
+        public AiDocController(IAiHandler aiHandler)
         {
-            _serviceProvider = serviceProvider;
+            _aiHandler = aiHandler;
         }
 
         /// <summary>
@@ -90,54 +91,31 @@ namespace Senparc.Weixin.Sample.Net8.Controllers
             request.Query = System.Web.HttpUtility.HtmlDecode(request.Query);
             try
             {
-                //建立 MCP 连接，并获取信息
-                var mcpEndpoint = "https://www.ncf.pub/mcp-senparc-xncf-weixinmanager/sse";
-                var clientTransport = new HttpClientTransport(new HttpClientTransportOptions()
+                //建立 MCP 连接，并把工具注册到 AgentKernel
+                var mcpServer = new McpServerOption
                 {
-                    Endpoint = new Uri(mcpEndpoint),
-                    Name = "NCF-Server"
-                });
-
-                var client = await McpClient.CreateAsync(clientTransport);
-                var tools = await client.ListToolsAsync();
+                    Name = "NCF-Server",
+                    ServerName = "WeixinMpRouter",
+                    SseUrl = "https://www.ncf.pub/mcp-senparc-xncf-weixinmanager/sse",
+                    ToolBindingMode = nameof(McpToolBindingMode.LocalFunctionProxy)
+                };
+                await using var toolset = await McpToolsetBuilder.PrepareAsync(mcpServer);
 
                 var aiSetting = Senparc.AI.Config.SenparcAiSetting;
-                var semanticAiHandler = new SemanticAiHandler(aiSetting);
-
-                var parameter = new PromptConfigParameter()
+                if (_aiHandler is not AgentAiHandler agentAiHandler)
                 {
-                    MaxTokens = 2000,
-                    Temperature = 0.7,
-                    TopP = 0.5,
-                    StopSequences = new List<string> { "<END>" }
-                };
+                    throw new InvalidOperationException("当前示例需要 AgentAiHandler，请确认已调用 AddSenparcAI。");
+                }
 
-                var systemMessage = $@"你是一位智能助手，帮我选择最适合的 API 方案。";
-
-                var iWantToRun = semanticAiHandler.ChatConfig(parameter,
-                  userId: "Jeffrey",
-                  maxHistoryStore: 10,
-                  chatSystemMessage: systemMessage,
-                  senparcAiSetting: aiSetting,
-                  kernelBuilderAction: kh =>
-                  {
-                      // kh.Plugins.AddMcpFunctionsFromSseServerAsync("NCF-Server", "http://localhost:5000/sse/sse");
-#pragma warning disable SKEXP0001 // 类型仅用于评估，在将来的更新中可能会被更改或删除。取消此诊断以继续。
-                      kh.Plugins.AddFromFunctions("WeixinMpRouter", tools.Select(z => z.AsKernelFunction()));
-#pragma warning restore SKEXP0001 // 类型仅用于评估，在将来的更新中可能会被更改或删除。取消此诊断以继续。
-                  }
-                      );
-                var executionSettings2 = new OpenAIPromptExecutionSettings
-                {
-                    Temperature = 0,
-                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()// FunctionChoiceBehavior.Auto()
-                };
-                var ka = new KernelArguments(executionSettings2) { };
-
-                ////输出结果
-                //SenparcAiResult ret = await semanticAiHandler.ChatAsync(iWantToRun, request.RequestPrompt/*, streamItemProceessing*/);
-
-                //////////var resultRaw = await iWantToRun.Kernel.InvokePromptAsync(request.RequestPrompt, ka);
+                var chatOptions = toolset.CreateChatClientAgentOptions(
+                    systemPrompt: "你是一位智能助手，帮我选择最适合的 API 方案。",
+                    agentName: "WeixinApiAssistant",
+                    temperature: 0,
+                    topP: 0.5f,
+                    maxOutputTokens: 2000);
+                var iWantToRun = await agentAiHandler.IWantTo(aiSetting)
+                    .ConfigChatModel("WeixinApiAssistant", chatOptions)
+                    .BuildKernelWithAgentSessionAsync();
 
                 var prompt = $@"
 ## 基本要求
@@ -187,11 +165,12 @@ public class QueryMcpResult
 
 ## 输出
 ";
-                var resultRaw = await iWantToRun.Kernel.InvokePromptAsync(prompt, ka);
+                var result = await iWantToRun.RunChatAsync(prompt, iWantToRun.Kernel.AgentSession);
+                var resultRaw = result.OutputString;
 
-                Console.WriteLine($"收到MCP回复：{resultRaw.ToString()}");
+                Console.WriteLine($"收到MCP回复：{resultRaw}");
 
-                var mcpResult = resultRaw.ToString().GetObject<QueryMcpResult>();
+                var mcpResult = resultRaw.GetObject<QueryMcpResult>();
 
                 // 模拟HTML格式的回复内容
                 var htmlResponse = GenerateResponse(request.Query, mcpResult);

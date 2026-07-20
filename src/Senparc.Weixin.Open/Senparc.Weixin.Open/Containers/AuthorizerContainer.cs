@@ -494,7 +494,7 @@ namespace Senparc.Weixin.Open.Containers
                 throw new WeixinOpenException(string.Format("注册AuthorizerContainer之前，必须先注册对应的ComponentContainer！ComponentAppId：{0},AuthorizerAppId:{1}", componentAppId, authorizerAppId));
             }
 
-            RegisterFuncCollection[authorizerAppId] = async () =>
+            SetRegistrationCallback(authorizerAppId, async () =>
              {
                  //using (FlushCache.CreateInstance())
                  //{
@@ -517,7 +517,7 @@ namespace Senparc.Weixin.Open.Containers
                  await UpdateAsync(authorizerAppId, bag, null).ConfigureAwait(false);
                  return bag;
                  //}
-             };
+             });
             await RegisterFuncCollection[authorizerAppId]().ConfigureAwait(false);
 
             //TODO：这里也可以考虑尝试进行授权（会影响速度）

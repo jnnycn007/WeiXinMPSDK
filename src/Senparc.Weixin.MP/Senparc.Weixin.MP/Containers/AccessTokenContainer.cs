@@ -41,7 +41,7 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20160717
     修改描述：v13.8.11 添加注册过程中的Name参数
-  
+
     修改标识：Senparc - 20160721
     修改描述：增加其接口的异步方法
 
@@ -102,6 +102,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260718
     修改描述：v16.24.4 修复同步注册竞态，并在分布式锁内重新读取 AccessToken 状态
 
+    修改标识：Senparc - 20260718
+    修改描述：v16.25.0 新增外部凭据提供器注册入口并保护重注册凭据
+
 ----------------------------------------------------------------*/
 
 /* 异步单元测试：https://github.com/OpenSenparc/UnitTestBasket/blob/10017bff083223f63ee11c7b31c818b8c204f30d/UnitTestBasket/ThreadAndAsyncTests/FuncAsyncTests.cs#L17 */
@@ -115,6 +118,7 @@ using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.Utilities.WeixinUtility;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Senparc.Weixin.MP.Containers
 {
@@ -232,7 +236,7 @@ namespace Senparc.Weixin.MP.Containers
         public static async Task RegisterAsync(string appId, string appSecret, string name = null)
         {
             //记录注册信息，RegisterFunc委托内的过程会在缓存丢失之后自动重试
-            RegisterFuncCollection[appId] = async () =>
+            SetRegistrationCallback(appId, async () =>
             {
                 //using (FlushCache.CreateInstance())
                 //{
@@ -248,7 +252,7 @@ namespace Senparc.Weixin.MP.Containers
                 await UpdateAsync(appId, bag, null).ConfigureAwait(false);//第一次添加，此处已经立即更新
                 return bag;
                 //}
-            };
+            });
 
             var registerTask = RegisterFuncCollection[appId]();
 
@@ -266,6 +270,64 @@ namespace Senparc.Weixin.MP.Containers
             var registerJsApiTask = JsApiTicketContainer.RegisterAsync(appId, appSecret, name);
 
             await Task.WhenAll(new[] { registerTask, registerJsApiTask }).ConfigureAwait(false);//等待所有任务完成
+        }
+
+        /// <summary>
+        /// 使用外部凭据提供器注册 AccessToken。自动重注册委托只捕获提供器，不长期捕获明文 AppSecret。
+        /// 此入口仅注册 AccessToken；如需 JS-SDK Ticket，请为对应容器单独配置凭据提供器。
+        /// </summary>
+        public static async Task RegisterWithCredentialProviderAsync(
+            string appId,
+            IWeixinCredentialProvider credentialProvider,
+            string name = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                throw new ArgumentException("AppId 不能为空。", nameof(appId));
+            }
+
+            if (credentialProvider == null)
+            {
+                throw new ArgumentNullException(nameof(credentialProvider));
+            }
+
+            SetRegistrationCallback(appId, async () =>
+            {
+                var secret = await credentialProvider.GetSecretAsync(appId, CancellationToken.None).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(secret))
+                {
+                    throw new InvalidOperationException("凭据提供器返回了空 AppSecret。");
+                }
+
+                var bag = new AccessTokenBag
+                {
+                    Name = name,
+                    AppId = appId,
+                    AppSecret = secret,
+                    AccessTokenExpireTime = DateTimeOffset.MinValue,
+                    AccessTokenResult = new AccessTokenResult()
+                };
+                await UpdateAsync(appId, bag, null).ConfigureAwait(false);
+                return bag;
+            });
+
+            cancellationToken.ThrowIfCancellationRequested();
+            var initialSecret = await credentialProvider.GetSecretAsync(appId, cancellationToken).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(initialSecret))
+            {
+                throw new InvalidOperationException("凭据提供器返回了空 AppSecret。");
+            }
+
+            var initialBag = new AccessTokenBag
+            {
+                Name = name,
+                AppId = appId,
+                AppSecret = initialSecret,
+                AccessTokenExpireTime = DateTimeOffset.MinValue,
+                AccessTokenResult = new AccessTokenResult()
+            };
+            await UpdateAsync(appId, initialBag, null).ConfigureAwait(false);
         }
 
         #region AccessToken

@@ -39,6 +39,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260718
     修改描述：v2.4.1 增加平台公钥缓存过期与未命中并发刷新机制
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.5.0 为支付公钥刷新增加取消传播与并发控制
+
 ----------------------------------------------------------------*/
 
 using Senparc.CO2NET.Extensions;
@@ -149,6 +152,16 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="privateKey"></param>
         /// <param name="serialNumber"></param>
         /// <param name="apiV3Key"></param>
+        public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret,
+            string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber, string apiV3Key)
+            : this(appId, appSecret, mchId, key, certPath, certSecret, tenPayV3Notify, tenPayV3WxOpenNotify,
+                  privateKey, serialNumber, apiV3Key, CertType.RSA)
+        {
+        }
+
+        /// <summary>
+        /// 普通服务商微信支付 V3 参数构造函数，并显式指定证书类型。
+        /// </summary>
         public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret, 
             string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber, string apiV3Key, CertType certType)
             : this(appId, appSecret, mchId, key, certPath, certSecret, "", "", "", tenPayV3Notify, 
@@ -173,6 +186,17 @@ namespace Senparc.Weixin.TenPayV3
         /// <param name="privateKey"></param>
         /// <param name="serialNumber"></param>
         /// <param name="apiV3Key"></param>
+        public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret, string subAppId,
+            string subAppSecret, string subMchId, string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber,
+            string apiV3Key)
+            : this(appId, appSecret, mchId, key, certPath, certSecret, subAppId, subAppSecret, subMchId,
+                  tenPayV3Notify, tenPayV3WxOpenNotify, privateKey, serialNumber, apiV3Key, CertType.RSA)
+        {
+        }
+
+        /// <summary>
+        /// 服务商微信支付 V3 参数构造函数，并显式指定证书类型。
+        /// </summary>
         /// <param name="certType"></param>
         public TenPayV3Info(string appId, string appSecret, string mchId, string key, string certPath, string certSecret, string subAppId, 
             string subAppSecret, string subMchId, string tenPayV3Notify, string tenPayV3WxOpenNotify, string privateKey, string serialNumber, 
@@ -225,7 +249,12 @@ namespace Senparc.Weixin.TenPayV3
         /// <summary>
         /// 获取当前支付账号下所有公钥信息
         /// </summary>
-        public async Task<PublicKeyCollection> GetPublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+        public Task<PublicKeyCollection> GetPublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+        {
+            return GetPublicKeysAsync(tenpayV3Setting, CancellationToken.None);
+        }
+
+        public async Task<PublicKeyCollection> GetPublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting, CancellationToken cancellationToken)
         {
             var cachedKeys = Volatile.Read(ref _publicKeys);
             if (IsPublicKeyCacheFresh(cachedKeys))
@@ -233,7 +262,7 @@ namespace Senparc.Weixin.TenPayV3
                 return cachedKeys;
             }
 
-            await _publicKeyRefreshLock.WaitAsync().ConfigureAwait(false);
+            await _publicKeyRefreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 cachedKeys = Volatile.Read(ref _publicKeys);
@@ -242,7 +271,7 @@ namespace Senparc.Weixin.TenPayV3
                     return cachedKeys;
                 }
 
-                return await FetchAndCachePublicKeysAsync(tenpayV3Setting).ConfigureAwait(false);
+                return await FetchAndCachePublicKeysAsync(tenpayV3Setting, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -255,10 +284,10 @@ namespace Senparc.Weixin.TenPayV3
             return keys != null && DateTimeOffset.UtcNow.UtcDateTime.Ticks < Interlocked.Read(ref _publicKeysExpiresAtUtcTicks);
         }
 
-        private async Task<PublicKeyCollection> FetchAndCachePublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+        private async Task<PublicKeyCollection> FetchAndCachePublicKeysAsync(ISenparcWeixinSettingForTenpayV3 tenpayV3Setting, CancellationToken cancellationToken)
         {
             var basePayApis = new BasePayApis(tenpayV3Setting);
-            var keys = await basePayApis.GetPublicKeysAsync().ConfigureAwait(false) ?? new PublicKeyCollection();
+            var keys = await basePayApis.GetPublicKeysAsync(cancellationToken).ConfigureAwait(false) ?? new PublicKeyCollection();
 
             Volatile.Write(ref _publicKeys, keys);
             Interlocked.Exchange(
@@ -270,9 +299,10 @@ namespace Senparc.Weixin.TenPayV3
 
         private async Task<PublicKeyCollection> RefreshPublicKeysAfterMissAsync(
             PublicKeyCollection observedKeys,
-            ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+            ISenparcWeixinSettingForTenpayV3 tenpayV3Setting,
+            CancellationToken cancellationToken)
         {
-            await _publicKeyRefreshLock.WaitAsync().ConfigureAwait(false);
+            await _publicKeyRefreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 // 如果等待锁期间已有请求完成刷新，直接复用该结果，避免同一序列号未命中时重复请求。
@@ -282,7 +312,7 @@ namespace Senparc.Weixin.TenPayV3
                     return currentKeys;
                 }
 
-                return await FetchAndCachePublicKeysAsync(tenpayV3Setting).ConfigureAwait(false);
+                return await FetchAndCachePublicKeysAsync(tenpayV3Setting, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -295,16 +325,21 @@ namespace Senparc.Weixin.TenPayV3
         /// </summary>
         /// <param name="serialNumber"></param>
         /// <returns></returns>
-        public async Task<string> GetPublicKeyAsync(string serialNumber, ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
+        public Task<string> GetPublicKeyAsync(string serialNumber, ISenparcWeixinSettingForTenpayV3 tenpayV3Setting)
         {
-            var keys = await GetPublicKeysAsync(tenpayV3Setting).ConfigureAwait(false);
+            return GetPublicKeyAsync(serialNumber, tenpayV3Setting, CancellationToken.None);
+        }
+
+        public async Task<string> GetPublicKeyAsync(string serialNumber, ISenparcWeixinSettingForTenpayV3 tenpayV3Setting, CancellationToken cancellationToken)
+        {
+            var keys = await GetPublicKeysAsync(tenpayV3Setting, cancellationToken).ConfigureAwait(false);
             if (keys.TryGetValue(serialNumber, out string publicKey))
             {
                 return publicKey;
             }
 
             // 平台证书/公钥可能刚完成轮换；未命中时立即刷新一次，而不是等待常规缓存过期。
-            keys = await RefreshPublicKeysAfterMissAsync(keys, tenpayV3Setting).ConfigureAwait(false);
+            keys = await RefreshPublicKeysAfterMissAsync(keys, tenpayV3Setting, cancellationToken).ConfigureAwait(false);
             if (keys != null && keys.TryGetValue(serialNumber, out publicKey))
             {
                 return publicKey;

@@ -25,17 +25,17 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     文件功能描述：微信请求的集中处理方法
     
     
-    创建标识：Senparc - 20150211
-    
+    创建标识：Senparc - 20160707
+
     修改标识：Senparc - 20150303
     修改描述：整理接口
-    
+
     修改标识：Senparc - 20150327
     修改描述：添加接收小视频消息方法
 
     修改标识：Senparc - 20151205
     修改描述：v13.4.5 提供OmitRepeatedMessageFunc方法增强消息去重灵活性
-  
+
     修改标识：Senparc - 20160722
     修改描述：记录上下文，此处修改
 
@@ -50,9 +50,12 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
 
     修改标识：Senparc - 20181117
     修改描述：v16.5.0 Execute() 重写方法名称改为 BuildResponseMessage()
-    
+
     修改标识：Senparc - 20190917
     修改描述：v16.8.0 支持新版本 MessageHandler 和 WeixinContext，支持使用分布式缓存储存上下文消息
+
+    修改标识：Senparc - 20260718
+    修改描述：v16.25.0 限制消息上下文容量并缓存响应 XML
 
 ----------------------------------------------------------------*/
 
@@ -66,6 +69,7 @@ using Senparc.NeuChar.Entities;
 using Senparc.NeuChar.Helpers;
 using Senparc.NeuChar.MessageHandlers;
 using Senparc.Weixin.Exceptions;
+using Senparc.Weixin.MessageContexts;
 using Senparc.Weixin.MP.AdvancedAPIs;
 using Senparc.Weixin.MP.Entities;
 using Senparc.Weixin.MP.Entities.Request;
@@ -97,7 +101,16 @@ namespace Senparc.Weixin.MP.MessageHandlers
         /// 根据ResponseMessageBase获得转换后的ResponseDocument
         /// 注意：这里每次请求都会根据当前的ResponseMessageBase生成一次，如需重用此数据，建议使用缓存或局部变量
         /// </summary>
-        public override XDocument ResponseDocument => ResponseMessage != null ? EntityHelper.ConvertEntityToXml(ResponseMessage as ResponseMessageBase) : null;
+        public override XDocument ResponseDocument
+        {
+            get
+            {
+                var responseMessage = ResponseMessage;
+                return responseMessage != null
+                    ? EntityHelper.ConvertEntityToXml(responseMessage as ResponseMessageBase)
+                    : null;
+            }
+        }
 
         /// <summary>
         /// 最后返回的ResponseDocument。
@@ -107,14 +120,15 @@ namespace Senparc.Weixin.MP.MessageHandlers
         {
             get
             {
-                if (ResponseDocument == null)
+                var responseDocument = ResponseDocument;
+                if (responseDocument == null)
                 {
                     return null;
                 }
 
                 if (!UsingEncryptMessage)
                 {
-                    return ResponseDocument;
+                    return responseDocument;
                 }
 
                 var timeStamp = SystemTime.Now.Ticks.ToString();
@@ -122,7 +136,7 @@ namespace Senparc.Weixin.MP.MessageHandlers
 
                 WXBizMsgCrypt msgCrype = new WXBizMsgCrypt(_postModel.Token, _postModel.EncodingAESKey, _postModel.AppId);
                 string finalResponseXml = null;
-                msgCrype.EncryptResponseMsg(ResponseDocument.ToString().Replace("\r\n", "\n")/* 替换\r\n是为了处理iphone设备上换行bug */, timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
+                msgCrype.EncryptResponseMsg(responseDocument.ToString().Replace("\r\n", "\n")/* 替换\r\n是为了处理iphone设备上换行bug */, timeStamp, nonce, ref finalResponseXml);//TODO:这里官方的方法已经把EncryptResponseMessage对应的XML输出出来了
 
                 return XDocument.Parse(finalResponseXml);
             }
@@ -171,7 +185,7 @@ namespace Senparc.Weixin.MP.MessageHandlers
         /// <param name="developerInfo">微微嗨开发者信息，如果不为空，则优先请求云端应用商店的资源</param>
         /// <param name="serviceProvider">ServiceProvider，.NET Framework 可留空（null）</param>
         public MessageHandler(Stream inputStream, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false, DeveloperInfo developerInfo = null, IServiceProvider serviceProvider = null)
-            : base(inputStream, postModel, maxRecordCount, onlyAllowEncryptMessage, serviceProvider)
+            : base(inputStream, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), onlyAllowEncryptMessage, serviceProvider)
         {
             DeveloperInfo = developerInfo;
             _postModel = postModel ?? new PostModel();
@@ -187,7 +201,7 @@ namespace Senparc.Weixin.MP.MessageHandlers
         /// <param name="developerInfo">微微嗨开发者信息，如果不为空，则优先请求云端应用商店的资源</param>
         /// <param name="serviceProvider">ServiceProvider，.NET Framework 可留空（null）</param>
         public MessageHandler(XDocument requestDocument, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false, DeveloperInfo developerInfo = null, IServiceProvider serviceProvider = null)
-            : base(requestDocument, postModel, maxRecordCount, onlyAllowEncryptMessage, serviceProvider)
+            : base(requestDocument, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), onlyAllowEncryptMessage, serviceProvider)
         {
             DeveloperInfo = developerInfo;
             _postModel = postModel ?? new PostModel();
@@ -205,13 +219,13 @@ namespace Senparc.Weixin.MP.MessageHandlers
         /// <param name="requestMessageBase"></param>
         /// <param name="serviceProvider">ServiceProvider，.NET Framework 可留空（null）</param>
         public MessageHandler(RequestMessageBase requestMessageBase, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false, DeveloperInfo developerInfo = null, IServiceProvider serviceProvider = null)
-            : base(requestMessageBase, postModel, maxRecordCount, onlyAllowEncryptMessage, serviceProvider)
+            : base(requestMessageBase, postModel, MessageContextSafetyOptions.ResolveMaxRecordCount(maxRecordCount), onlyAllowEncryptMessage, serviceProvider)
         {
             DeveloperInfo = developerInfo;
             postModel = postModel ?? new PostModel();
 
             var postDataDocument = requestMessageBase.ConvertEntityToXml();
-            base.CommonInitialize(postDataDocument, maxRecordCount, postModel, onlyAllowEncryptMessage);
+            base.CommonInitialize(postDataDocument, GlobalMessageContext.MaxRecordCount, postModel, onlyAllowEncryptMessage);
         }
 
         /// <summary>

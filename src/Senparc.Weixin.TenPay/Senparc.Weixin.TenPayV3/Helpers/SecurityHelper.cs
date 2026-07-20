@@ -32,6 +32,9 @@ Detail: https://github.com/JeffreySu/WeiXinMPSDK/blob/master/license.md
     修改标识：Senparc - 20260718
     修改描述：v2.4.1 完善 RSA 与证书资源释放及空公钥校验
 
+    修改标识：Senparc - 20260718
+    修改描述：v2.5.0 缓存支付加密字段反射元数据并完善资源管理
+
 ----------------------------------------------------------------*/
 
 
@@ -45,7 +48,9 @@ using Senparc.Weixin.TenPayV3.Apis.BasePay;
 using Senparc.Weixin.TenPayV3.Attributes;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -60,6 +65,35 @@ namespace Senparc.Weixin.TenPayV3.Helpers
     /// </summary>
     public class SecurityHelper
     {
+        private static readonly ConcurrentDictionary<Type, FieldEncryptPropertyMetadata[]> FieldEncryptProperties = new();
+
+        private sealed class FieldEncryptPropertyMetadata
+        {
+            internal PropertyInfo Property { get; set; }
+            internal bool IsNestedObject { get; set; }
+            internal bool RequiresEncryption { get; set; }
+        }
+
+        private static FieldEncryptPropertyMetadata[] GetFieldEncryptProperties(Type type)
+        {
+            return FieldEncryptProperties.GetOrAdd(type, value => value.GetProperties()
+                .Where(property => property.CanRead && property.GetIndexParameters().Length == 0)
+                .Select(property =>
+                {
+                    var isSimpleValue = property.PropertyType.IsValueType
+                        || property.PropertyType == typeof(string)
+                        || typeof(IEnumerable).IsAssignableFrom(property.PropertyType);
+                    return new FieldEncryptPropertyMetadata
+                    {
+                        Property = property,
+                        IsNestedObject = !isSimpleValue,
+                        RequiresEncryption = property.CanWrite
+                            && property.GetCustomAttributes(typeof(FieldEncryptAttribute), true).Length > 0
+                    };
+                })
+                .ToArray());
+        }
+
         /// <summary>
         /// 解密微信支付接口 ciphertext 内容
         /// </summary>
@@ -137,24 +171,28 @@ namespace Senparc.Weixin.TenPayV3.Helpers
         /// <param name="isWeixinPubKey">是否是微信支付公钥</param>
         public static void FieldEncrypt(object request, string publicKey, CertType encryptionType, bool isWeixinPubKey = false)
         {
-            var pis = request.GetType().GetProperties();
-            foreach (var pi in pis)
+            if (request == null)
             {
-                var value = pi.GetValue(request);
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            foreach (var metadata in GetFieldEncryptProperties(request.GetType()))
+            {
+                var value = metadata.Property.GetValue(request);
                 if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
                     continue;
 
-                if (!(pi.PropertyType.IsValueType || pi.PropertyType.Name.StartsWith("String") || typeof(IEnumerable).IsAssignableFrom(pi.PropertyType)))
+                if (metadata.IsNestedObject)
                 {
                     FieldEncrypt(value, publicKey, encryptionType, isWeixinPubKey);
                     continue;
                 }
 
-                if ((pi.GetCustomAttributes(typeof(FieldEncryptAttribute), true)?.Count() ?? 0) <= 0)
+                if (!metadata.RequiresEncryption)
                     continue;
 
                 var encryptValue = Encrypt(value.ToString(), publicKey, encryptionType, isWeixinPubKey);
-                pi.SetValue(request, encryptValue);
+                metadata.Property.SetValue(request, encryptValue);
             }
         }
 
