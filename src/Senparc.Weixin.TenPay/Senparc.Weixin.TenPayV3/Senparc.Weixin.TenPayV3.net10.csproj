@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>2.4.1</Version>
+    <Version>2.5.0</Version>
     <AssemblyName>Senparc.Weixin.TenPayV3</AssemblyName>
     <RootNamespace>Senparc.Weixin.TenPayV3</RootNamespace>
     <LangVersion>10.0</LangVersion>
@@ -76,6 +76,10 @@
 		1、复用按配置隔离的 HttpClient，并为单次请求设置超时及响应释放
 		2、增加平台公钥缓存过期、未命中并发刷新及商户配置集合线程安全访问
 		3、使用密码学安全随机数并及时释放证书、RSA、哈希等加密资源
+		[2026-07-20] v2.5.0 增强支付下载、通知处理和公钥刷新能力
+		1、支持账单及营销明细流式下载、增量校验与取消传播
+		2、增加通知正文限长异步读取、支付公钥并发刷新和线程安全配置访问
+		3、保持已发布构造函数、DTO 与受保护方法的兼容签名
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

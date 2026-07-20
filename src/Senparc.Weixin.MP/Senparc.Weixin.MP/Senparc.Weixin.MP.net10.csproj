@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>16.24.4</Version>
+    <Version>16.25.0</Version>
     <AssemblyName>Senparc.Weixin.MP</AssemblyName>
     <RootNamespace>Senparc.Weixin.MP</RootNamespace>
     <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
@@ -454,6 +454,9 @@
 		[2026-07-18] v16.24.4 修复公众号凭据容器并发刷新与同步注册竞态
 		1、同步注册在返回前完成，避免立即读取时尚未注册
 		2、在分布式锁内重新读取 AccessToken、JS-SDK、OAuth 和卡券票据状态，避免重复刷新
+		[2026-07-20] v16.25.0 新增可注入公众号客户端并增强凭据与消息上下文管理
+		1、新增 MpApiClient 和外部凭据提供器注册入口
+		2、完善注册回调容量检查、消息上下文安全设置与响应生成兼容性
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

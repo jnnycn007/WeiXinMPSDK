@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>4.24.2</Version>
+    <Version>4.24.3</Version>
     <AssemblyName>Senparc.Weixin.Open</AssemblyName>
     <RootNamespace>Senparc.Weixin.Open</RootNamespace>
     <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
@@ -210,6 +210,8 @@
 		[2026-07-18] v4.24.2 修复开放平台容器注册及凭据并发刷新
 		1、同步注册在返回前完成，消除注册后立即读取的竞态
 		2、为组件票据及授权方凭据增加锁内二次检查，避免并发重复刷新
+		[2026-07-20] v4.24.3 适配开放平台容器注册回调容量管理
+		1、组件票据和授权方容器使用兼容的注册容量检查
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

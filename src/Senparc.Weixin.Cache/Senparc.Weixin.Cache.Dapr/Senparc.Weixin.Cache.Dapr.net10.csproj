@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net10.0</TargetFrameworks>
-    <Version>0.3.2</Version>
+    <Version>0.3.3</Version>
     <AssemblyName>Senparc.Weixin.Cache.Dapr</AssemblyName>
     <RootNamespace>Senparc.Weixin.Cache.Dapr</RootNamespace>
     <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
@@ -25,6 +25,7 @@
 			v0.1.0
 			创世
 			[2026-07-18] v0.3.2 Dependency update from Senparc.Weixin to 6.23.2
+			[2026-07-20] v0.3.3 声明 Dapr 容器缓存能力并保持键枚举兼容行为
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

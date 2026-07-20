@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>3.27.3</Version>
+    <Version>3.28.0</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin.WxOpen</AssemblyName>
     <RootNamespace>Senparc.Weixin.WxOpen</RootNamespace>
@@ -183,6 +183,9 @@
 		[2026-07-18] v3.27.3 修复小程序凭据并发刷新与过期会话清理
 		1、同步完成 AccessToken 容器注册，并在分布式锁内二次检查凭据状态
 		2、通过容器统一入口清理过期会话，确保缓存状态同步
+		[2026-07-20] v3.28.0 新增可注入小程序客户端并增强消息与凭据管理
+		1、新增 WxOpenApiClient 和外部凭据提供器注册入口
+		2、完善注册容量检查、消息上下文安全设置与响应生成兼容性
 	</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

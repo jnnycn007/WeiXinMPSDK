@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
     <!--<FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35'">$(Net35FrameworkPathOverride)</FrameworkPathOverride>-->
-    <Version>6.23.2</Version>
+    <Version>6.24.0</Version>
     <LangVersion>10.0</LangVersion>
     <AssemblyName>Senparc.Weixin</AssemblyName>
     <RootNamespace>Senparc.Weixin</RootNamespace>
@@ -297,6 +297,10 @@
 			[2026-07-18] v6.23.2 修复容器并发与消息加密资源管理问题
 			1、同步缓存策略热切换，修复空值移除和并发重注册竞态
 			2、使用密码学安全随机数并规范 AES、SHA 加密资源释放
+			[2026-07-20] v6.24.0 扩展容器生命周期、缓存能力和微信 API 安全基础设施
+			1、新增缓存能力描述、分页读取、注册回调容量管理与外部凭据提供器
+			2、新增统一 API 错误模型、消息上下文安全选项和日志敏感信息脱敏
+			3、优化 JSON 请求缓冲、注册并发与已发布 API 兼容性
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

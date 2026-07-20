@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-    <Version>1.18.2</Version>
+    <Version>1.18.3</Version>
     <AssemblyName>Senparc.Weixin.TenPay</AssemblyName>
     <RootNamespace>Senparc.Weixin.TenPay</RootNamespace>
     <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
@@ -58,6 +58,8 @@
 			v1.12.8 TenPayUtil.GetNoncestr() 弃用 MD5 加密方法
             [2024-08-06] v1.14.4 更新基础库，包括 Senparc.CO2NET 相关库、Senparc.AI
             [2026-07-18] v1.18.2 Dependency update from Senparc.Weixin to 6.23.2
+            [2026-07-20] v1.18.3 完善旧版红包请求的网络与证书资源管理
+            1、统一证书、响应、流和 HTTP 请求资源的确定性释放
 </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
   </PropertyGroup>

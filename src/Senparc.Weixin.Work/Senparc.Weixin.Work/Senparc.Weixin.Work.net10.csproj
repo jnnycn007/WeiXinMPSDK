@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
-		<Version>3.31.1</Version>
+		<Version>3.32.0</Version>
 		<LangVersion>10.0</LangVersion>
 		<AssemblyName>Senparc.Weixin.Work</AssemblyName>
 		<RootNamespace>Senparc.Weixin.Work</RootNamespace>
@@ -216,6 +216,9 @@
 			[2026-07-18] v3.31.1 修复企业微信凭据容器并发刷新与消息加密资源管理
 			1、同步完成容器注册，并通过分布式锁内二次检查避免凭据重复刷新
 			2、使用密码学安全随机数并规范 AES、SHA 加密资源释放
+			[2026-07-20] v3.32.0 新增可注入企业微信客户端并优化消息与凭据处理
+			1、新增 WorkApiClient 和外部凭据提供器注册入口
+			2、优化注册容量、反射缓存、异步回调与文件流释放
 		</PackageReleaseNotes>
 		<RepositoryUrl>https://github.com/JeffreySu/WeiXinMPSDK</RepositoryUrl>
 		<SignAssembly>False</SignAssembly>
